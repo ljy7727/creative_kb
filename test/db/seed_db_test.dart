@@ -54,7 +54,7 @@ void main() {
     expect(await db.appSettingsDao.get(AppSettingKeys.quickIngest), 'false');
     expect(
       await db.appSettingsDao.get(AppSettingKeys.updateRepo),
-      'yourname/creative_kb',
+      'ljy7727/creative_kb',
     );
     expect(
       int.parse(

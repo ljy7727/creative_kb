@@ -2,12 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path/path.dart' as p;
 import 'package:window_manager/window_manager.dart';
 
 import 'app.dart';
 import 'core/db/database.dart';
 import 'core/db/database_provider.dart';
+import 'core/seed/app_data_dir.dart';
 import 'core/seed/app_seeder.dart';
+import 'features/settings/services/backup_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +28,14 @@ Future<void> main() async {
       await windowManager.show();
       await windowManager.focus();
     });
+  }
+
+  // 上次会话若有「从备份导入」暂存的库文件（app.db.imported），开库前换入。
+  try {
+    final dir = await resolveAppDataDirectory();
+    await BackupService.applyPendingImport(File(p.join(dir.path, 'app.db')));
+  } catch (_) {
+    // 数据目录不可用（异常环境）：照常启动，导入待下次。
   }
 
   // 初始化数据库并执行首启种子（schemas 落盘、intensity 预设、默认设置）。

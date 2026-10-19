@@ -2,7 +2,8 @@ part of '../database.dart';
 
 /// providers 表 DAO。
 @DriftAccessor(tables: [Providers])
-class ProvidersDao extends DatabaseAccessor<AppDatabase> with _$ProvidersDaoMixin {
+class ProvidersDao extends DatabaseAccessor<AppDatabase>
+    with _$ProvidersDaoMixin {
   ProvidersDao(super.db);
 
   Stream<List<ProviderRow>> watchAll() =>
@@ -13,8 +14,9 @@ class ProvidersDao extends DatabaseAccessor<AppDatabase> with _$ProvidersDaoMixi
   Future<ProviderRow?> byId(int id) =>
       (select(providers)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<ProviderRow?> byKeyRef(String keyRef) =>
-      (select(providers)..where((t) => t.keyRef.equals(keyRef))).getSingleOrNull();
+  Future<ProviderRow?> byKeyRef(String keyRef) => (select(
+    providers,
+  )..where((t) => t.keyRef.equals(keyRef))).getSingleOrNull();
 
   Future<int> add(ProvidersCompanion entry) => into(providers).insert(entry);
 

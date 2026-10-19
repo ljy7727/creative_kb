@@ -3,11 +3,17 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import 'tables.dart';
+
+// 统一出口：import database.dart 即可拿到全部表模型与枚举
+// （FragmentSource/FragmentStatus/PromptType/Credibility/QueueTaskStatus/UsageStatus 等），
+// 供各 feature 模块按 drift 惯例引用。
+export 'tables.dart';
 
 part 'database.g.dart';
 part 'daos/app_settings_dao.dart';
@@ -63,20 +69,32 @@ class AppDatabase extends _$AppDatabase {
   /// 生产入口：数据库文件位于 应用支持目录/creative_kb/app.db（docs/03 数据目录布局）。
   AppDatabase.open() : super(_openDefault());
 
+  /// 测试专用：内存库 + 查询流同步关闭。
+  /// drift 默认在最后一个监听者取消后等一帧事件循环再关流（Timer.run），
+  /// 在 widget 测试的 fake async 里该 Timer 会存活到测试结束并触发
+  /// 「A Timer is still pending」断言，因此测试一律用本构造。
+  AppDatabase.inMemory()
+    : super(
+        DatabaseConnection(
+          NativeDatabase.memory(),
+          closeStreamsSynchronously: true,
+        ),
+      );
+
   @override
   int get schemaVersion => 1;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        onCreate: (m) async {
-          await m.createAll();
-          await _createFtsObjects();
-        },
-        onUpgrade: (m, from, to) async {
-          // v1 无历史版本。后续版本在此按 from→to 增量迁移；
-          // 涉及 kb_entries 结构变更时需重建 kb_fts（见 rebuildFts）。
-        },
-      );
+    onCreate: (m) async {
+      await m.createAll();
+      await _createFtsObjects();
+    },
+    onUpgrade: (m, from, to) async {
+      // v1 无历史版本。后续版本在此按 from→to 增量迁移；
+      // 涉及 kb_entries 结构变更时需重建 kb_fts（见 rebuildFts）。
+    },
+  );
 
   Future<void> _createFtsObjects() async {
     await customStatement(KbFts.createTableSql);
@@ -93,9 +111,9 @@ class AppDatabase extends _$AppDatabase {
   }
 
   static QueryExecutor _openDefault() => driftDatabase(
-        name: 'creative_kb_app',
-        native: const DriftNativeOptions(databasePath: _defaultDatabasePath),
-      );
+    name: 'creative_kb_app',
+    native: const DriftNativeOptions(databasePath: _defaultDatabasePath),
+  );
 
   static Future<String> _defaultDatabasePath() async {
     final base = await getApplicationSupportDirectory();

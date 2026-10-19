@@ -2,11 +2,13 @@ part of '../database.dart';
 
 /// prompt_versions 表 DAO：版本历史与回滚（docs/02 模块C）。
 @DriftAccessor(tables: [PromptVersions])
-class PromptVersionsDao extends DatabaseAccessor<AppDatabase> with _$PromptVersionsDaoMixin {
+class PromptVersionsDao extends DatabaseAccessor<AppDatabase>
+    with _$PromptVersionsDaoMixin {
   PromptVersionsDao(super.db);
 
   /// 某提示词的全部版本，新版本在前。
-  Future<List<PromptVersion>> byPrompt(int promptId) => (select(promptVersions)
+  Future<List<PromptVersion>> byPrompt(int promptId) =>
+      (select(promptVersions)
             ..where((t) => t.promptId.equals(promptId))
             ..orderBy([(t) => OrderingTerm.desc(t.id)]))
           .get();

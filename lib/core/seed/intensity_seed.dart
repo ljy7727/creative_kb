@@ -14,9 +14,9 @@ abstract final class IntensitySeed {
   static const custom = {'temperature': 0.7, 'maxTokens': 4096};
 
   static List<({String code, String name, String paramsJson})> all() => [
-        (code: 'fast', name: '极速', paramsJson: jsonEncode(fast)),
-        (code: 'standard', name: '标准', paramsJson: jsonEncode(standard)),
-        (code: 'deep', name: '深度', paramsJson: jsonEncode(deep)),
-        (code: 'custom', name: '自定义', paramsJson: jsonEncode(custom)),
-      ];
+    (code: 'fast', name: '极速', paramsJson: jsonEncode(fast)),
+    (code: 'standard', name: '标准', paramsJson: jsonEncode(standard)),
+    (code: 'deep', name: '深度', paramsJson: jsonEncode(deep)),
+    (code: 'custom', name: '自定义', paramsJson: jsonEncode(custom)),
+  ];
 }

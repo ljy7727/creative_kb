@@ -12,7 +12,7 @@ import 'intensity_seed.dart';
 /// 幂等：重复执行不覆盖用户已有内容。
 class AppSeeder {
   AppSeeder(this.db, {Future<Directory> Function()? appDirResolver})
-      : _appDirResolver = appDirResolver ?? resolveAppDataDirectory;
+    : _appDirResolver = appDirResolver ?? resolveAppDataDirectory;
 
   final AppDatabase db;
   final Future<Directory> Function() _appDirResolver;
@@ -27,8 +27,12 @@ class AppSeeder {
   /// 内置强度预设入库（只补缺，不覆盖用户修改）。
   Future<void> seedIntensityPresets() async {
     for (final (:code, :name, :paramsJson) in IntensitySeed.all()) {
-      await db.intensityPresetsDao
-          .insertIfAbsent(code: code, name: name, paramsJson: paramsJson, isBuiltin: true);
+      await db.intensityPresetsDao.insertIfAbsent(
+        code: code,
+        name: name,
+        paramsJson: paramsJson,
+        isBuiltin: true,
+      );
     }
   }
 

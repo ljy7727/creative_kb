@@ -40,7 +40,11 @@ void main() {
     test('查不到价格返回 null（只记账不估价）', () {
       expect(PriceTable.match('gpt-5-mini'), isNull);
       expect(
-        PriceTable.estimateCost(modelId: 'unknown-model', inputTokens: 1000, outputTokens: 100),
+        PriceTable.estimateCost(
+          modelId: 'unknown-model',
+          inputTokens: 1000,
+          outputTokens: 100,
+        ),
         isNull,
       );
     });

@@ -13,8 +13,7 @@ void main() {
 
     test('共 4 套：通用/历史官职/仙侠宝物/宗门势力，id 唯一', () {
       expect(BuiltinSchemas.all, hasLength(4));
-      expect(decoded.keys.toSet(),
-          {'general', 'official', 'treasure', 'sect'});
+      expect(decoded.keys.toSet(), {'general', 'official', 'treasure', 'sect'});
     });
 
     test('每套 JSON 可解析且结构合法', () {
@@ -22,8 +21,16 @@ void main() {
         final id = record.id;
         final schema = decoded[id]!;
         expect(schema['id'], id, reason: '$id 顶层 id 与文件名不一致');
-        expect((schema['name'] as String).isNotEmpty, isTrue, reason: '$id 缺 name');
-        expect(schema['matchKeywords'], isA<List<dynamic>>(), reason: '$id matchKeywords 应为数组');
+        expect(
+          (schema['name'] as String).isNotEmpty,
+          isTrue,
+          reason: '$id 缺 name',
+        );
+        expect(
+          schema['matchKeywords'],
+          isA<List<dynamic>>(),
+          reason: '$id matchKeywords 应为数组',
+        );
         expect(schema['baseSchema'], 'general', reason: '$id baseSchema 应沿用通用');
 
         final fields = schema['fields'] as List<dynamic>;
@@ -31,11 +38,26 @@ void main() {
         for (final field in fields) {
           expect(field, isA<Map<String, dynamic>>(), reason: '$id 字段应为对象');
           final f = field as Map<String, dynamic>;
-          expect((f['key'] as String).isNotEmpty, isTrue, reason: '$id 字段缺 key');
-          expect((f['label'] as String).isNotEmpty, isTrue, reason: '$id 字段缺 label');
-          expect(allowedTypes.contains(f['type']), isTrue,
-              reason: '$id 字段 ${f['key']} type 非法: ${f['type']}');
-          expect(f['required'], isA<bool>(), reason: '$id 字段 ${f['key']} required 应为布尔');
+          expect(
+            (f['key'] as String).isNotEmpty,
+            isTrue,
+            reason: '$id 字段缺 key',
+          );
+          expect(
+            (f['label'] as String).isNotEmpty,
+            isTrue,
+            reason: '$id 字段缺 label',
+          );
+          expect(
+            allowedTypes.contains(f['type']),
+            isTrue,
+            reason: '$id 字段 ${f['key']} type 非法: ${f['type']}',
+          );
+          expect(
+            f['required'],
+            isA<bool>(),
+            reason: '$id 字段 ${f['key']} required 应为布尔',
+          );
           keys.add(f['key'] as String);
         }
         expect(keys.length, fields.length, reason: '$id 字段 key 重复');

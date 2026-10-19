@@ -1,20 +1,21 @@
 import 'package:creative_kb/core/db/database.dart';
 import 'package:drift/drift.dart' hide isNull;
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late AppDatabase db;
 
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase.inMemory();
   });
 
   tearDown(() async {
     await db.close();
   });
 
-  Future<int> insertQingyunEntry() => db.into(db.kbEntries).insert(
+  Future<int> insertQingyunEntry() => db
+      .into(db.kbEntries)
+      .insert(
         KbEntriesCompanion.insert(
           entryName: '青云宗',
           categoryPath: '仙侠设定/势力宗门',
@@ -42,9 +43,7 @@ void main() {
     final id = await insertQingyunEntry();
 
     await (db.update(db.kbEntries)..where((t) => t.id.equals(id))).write(
-      const KbEntriesCompanion(
-        contentMd: Value('青云宗已改修太极玄清道，护山大阵升级为诛邪阵。'),
-      ),
+      const KbEntriesCompanion(contentMd: Value('青云宗已改修太极玄清道，护山大阵升级为诛邪阵。')),
     );
 
     final newHits = await db.kbEntriesDao.searchFts('诛邪阵');
@@ -53,12 +52,16 @@ void main() {
 
   test('名称与摘要列参与检索（权重 3:2:1 配置不抛错且按分排序）', () async {
     await insertQingyunEntry();
-    await db.into(db.kbEntries).insert(KbEntriesCompanion.insert(
-          entryName: '神剑御雷真诀',
-          categoryPath: '仙侠设定/功法',
-          summary: const Value('青云宗镇派功法。'),
-          contentMd: const Value('共九卷。'),
-        ));
+    await db
+        .into(db.kbEntries)
+        .insert(
+          KbEntriesCompanion.insert(
+            entryName: '神剑御雷真诀',
+            categoryPath: '仙侠设定/功法',
+            summary: const Value('青云宗镇派功法。'),
+            contentMd: const Value('共九卷。'),
+          ),
+        );
 
     final hits = await db.kbEntriesDao.searchFts('青云宗');
     expect(hits.map((h) => h.entry.entryName).toSet(), {'青云宗', '神剑御雷真诀'});
@@ -93,14 +96,19 @@ void main() {
   });
 
   test('kb_relations 双向各存一行且不重复', () async {
-    final a = await db.into(db.kbEntries).insert(KbEntriesCompanion.insert(
-          entryName: '青云宗',
-          categoryPath: '仙侠设定/势力宗门',
-        ));
-    final b = await db.into(db.kbEntries).insert(KbEntriesCompanion.insert(
-          entryName: '张小凡',
-          categoryPath: '仙侠设定/人物',
-        ));
+    final a = await db
+        .into(db.kbEntries)
+        .insert(
+          KbEntriesCompanion.insert(
+            entryName: '青云宗',
+            categoryPath: '仙侠设定/势力宗门',
+          ),
+        );
+    final b = await db
+        .into(db.kbEntries)
+        .insert(
+          KbEntriesCompanion.insert(entryName: '张小凡', categoryPath: '仙侠设定/人物'),
+        );
 
     await db.kbRelationsDao.linkPair(entryId: a, relatedEntryId: b);
     await db.kbRelationsDao.linkPair(entryId: a, relatedEntryId: b); // 幂等
@@ -119,9 +127,11 @@ void main() {
 
 /// 断言列表按 [compare] 非降序排列。
 Matcher isSorted(bool Function(num, num) compare) => predicate<List<num>>(
-      (list) =>
-          list.isEmpty ||
-          List.generate(list.length - 1, (i) => i)
-              .every((i) => compare(list[i], list[i + 1])),
-      '按给定比较规则非降序排列',
-    );
+  (list) =>
+      list.isEmpty ||
+      List.generate(
+        list.length - 1,
+        (i) => i,
+      ).every((i) => compare(list[i], list[i + 1])),
+  '按给定比较规则非降序排列',
+);

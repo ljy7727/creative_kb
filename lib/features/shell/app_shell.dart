@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/update/update_checker.dart';
 import '../../features/fragments/pages/fragments_page.dart';
 import '../../features/kb/pages/kb_page.dart';
 import '../../features/prompts/pages/prompts_page.dart';
 import '../../features/settings/pages/settings_page.dart';
+import '../../features/settings/providers/settings_providers.dart';
 import '../../features/usage/pages/usage_page.dart';
 
 /// 一级入口定义（docs/01 第四节：灵感/提示词/资料库/用量/设置）。
@@ -57,15 +62,77 @@ const _tabs = <ShellTab>[
 /// 响应式导航壳（docs/01 第四节）：
 /// 宽度 ≥900 → NavigationRail 带标签；700–899 → Rail 折叠纯图标；
 /// <700 → 底部 NavigationBar。页面用 IndexedStack 保状态。
-class AppShell extends StatefulWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key});
 
   @override
-  State<AppShell> createState() => _AppShellState();
+  ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends ConsumerState<AppShell> {
   int _index = 0;
+  bool _startupUpdateShown = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 启动自动检查更新（docs/02 A6，默认开）：延迟一帧等库就绪，只查一次。
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _startupUpdateCheck();
+    });
+  }
+
+  Future<void> _startupUpdateCheck() async {
+    if (_startupUpdateShown) return;
+    _startupUpdateShown = true;
+    try {
+      final result = await ref.read(startupUpdateProvider.future);
+      if (result == null || !result.hasUpdate || !mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(
+            '发现新版本 ${result.tagName ?? ''}（当前 ${result.currentVersion}）',
+          ),
+          content: SizedBox(
+            width: 480,
+            child: result.releaseNotes == null || result.releaseNotes!.isEmpty
+                ? const Text('（无 Release Notes）')
+                : SizedBox(
+                    height: 280,
+                    child: MarkdownBody(data: result.releaseNotes!),
+                  ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('稍后再说'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final url = UpdateChecker.downloadUrl(
+                  result,
+                  isAndroid: UpdateChecker.isAndroidPlatform,
+                );
+                try {
+                  await launchUrl(
+                    Uri.parse(url),
+                    mode: LaunchMode.externalApplication,
+                  );
+                } catch (_) {
+                  // 打开失败不打断主流程，用户可稍后在设置页手动检查。
+                }
+                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+              },
+              child: const Text('前往下载'),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      // 网络异常/未配置仓库：静默，不打扰启动流程。
+    }
+  }
 
   void _select(int index) => setState(() => _index = index);
 

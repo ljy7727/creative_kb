@@ -46,7 +46,9 @@ class Models extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
-  List<Set<Column>> get uniqueKeys => [{providerId, modelId}];
+  List<Set<Column>> get uniqueKeys => [
+    {providerId, modelId},
+  ];
 }
 
 /// 思考强度预设。builtin 四条：fast|standard|deep|custom（docs/02 A4）。
@@ -70,7 +72,8 @@ class Fragments extends Table {
   TextColumn get tags => text().withDefault(const Constant('[]'))(); // JSON
   TextColumn get source => textEnum<FragmentSource>()();
   TextColumn get aiMeta => text().nullable()(); // JSON: model,preset,tokens,ts
-  TextColumn get status => textEnum<FragmentStatus>().clientDefault(() => FragmentStatus.raw.name)();
+  TextColumn get status =>
+      textEnum<FragmentStatus>().clientDefault(() => FragmentStatus.raw.name)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -82,7 +85,8 @@ class Prompts extends Table {
   TextColumn get title => text()();
   TextColumn get type => textEnum<PromptType>()();
   TextColumn get body => text()();
-  TextColumn get variables => text().withDefault(const Constant('[]'))(); // JSON: [{name,desc}]
+  TextColumn get variables =>
+      text().withDefault(const Constant('[]'))(); // JSON: [{name,desc}]
   TextColumn get category => text().nullable()();
   IntColumn get currentVersionId => integer().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
@@ -103,7 +107,8 @@ class PromptVersions extends Table {
 class KbCategories extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get path => text().unique()();
-  IntColumn get parentId => integer().nullable().references(KbCategories, #id)();
+  IntColumn get parentId =>
+      integer().nullable().references(KbCategories, #id)();
 }
 
 /// 资料条目。extra 为分类扩展字段 JSON；related 为关联条目名 JSON 数组。
@@ -117,9 +122,11 @@ class KbEntries extends Table {
   TextColumn get summary => text().withDefault(const Constant(''))();
   TextColumn get contentMd => text().withDefault(const Constant(''))();
   TextColumn get extra => text().withDefault(const Constant('{}'))(); // JSON
-  TextColumn get related => text().withDefault(const Constant('[]'))(); // JSON: [entryName]
+  TextColumn get related =>
+      text().withDefault(const Constant('[]'))(); // JSON: [entryName]
   TextColumn get source => text().nullable()();
-  TextColumn get credibility => textEnum<Credibility>().nullable()(); // high|mid|low
+  TextColumn get credibility =>
+      textEnum<Credibility>().nullable()(); // high|mid|low
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
@@ -183,7 +190,9 @@ class TaskQueue extends Table {
   TextColumn get module => text()();
   TextColumn get taskType => text()();
   TextColumn get payload => text()(); // JSON
-  TextColumn get status => textEnum<QueueTaskStatus>().clientDefault(() => QueueTaskStatus.pending.name)();
+  TextColumn get status => textEnum<QueueTaskStatus>().clientDefault(
+    () => QueueTaskStatus.pending.name,
+  )();
   TextColumn get result => text().nullable()();
   TextColumn get error => text().nullable()();
   IntColumn get retries => integer().withDefault(const Constant(0))();
@@ -210,7 +219,8 @@ class AppSettings extends Table {
 abstract final class KbFts {
   static const tableName = 'kb_fts';
 
-  static const createTableSql = 'CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5('
+  static const createTableSql =
+      'CREATE VIRTUAL TABLE IF NOT EXISTS kb_fts USING fts5('
       'entry_name, summary, content_md, '
       "content='kb_entries', content_rowid='id', tokenize='trigram')";
 

@@ -2,18 +2,29 @@ part of '../database.dart';
 
 /// usage_log 表 DAO：记账写入 + 用量看板聚合（docs/02 A5）。
 @DriftAccessor(tables: [UsageLogs])
-class UsageLogDao extends DatabaseAccessor<AppDatabase> with _$UsageLogDaoMixin {
+class UsageLogDao extends DatabaseAccessor<AppDatabase>
+    with _$UsageLogDaoMixin {
   UsageLogDao(super.db);
 
   Future<void> add(UsageLogsCompanion entry) => into(usageLogs).insert(entry);
 
   /// 最近明细（看板明细表，默认 50 条）。
   Future<List<UsageLogEntry>> recent({int limit = 50}) =>
-      (select(usageLogs)..orderBy([(t) => OrderingTerm.desc(t.ts), (t) => OrderingTerm.desc(t.id)])..limit(limit))
+      (select(usageLogs)
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.ts),
+              (t) => OrderingTerm.desc(t.id),
+            ])
+            ..limit(limit))
           .get();
 
   Stream<List<UsageLogEntry>> watchRecent({int limit = 50}) =>
-      (select(usageLogs)..orderBy([(t) => OrderingTerm.desc(t.ts), (t) => OrderingTerm.desc(t.id)])..limit(limit))
+      (select(usageLogs)
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.ts),
+              (t) => OrderingTerm.desc(t.id),
+            ])
+            ..limit(limit))
           .watch();
 
   /// [since, until) 区间内的 input/output token 总量。
@@ -22,8 +33,10 @@ class UsageLogDao extends DatabaseAccessor<AppDatabase> with _$UsageLogDaoMixin 
     final output = usageLogs.outputTokens.sum();
     final query = selectOnly(usageLogs)
       ..addColumns([input, output])
-      ..where(usageLogs.ts.isBiggerOrEqualValue(since) &
-          usageLogs.ts.isSmallerThanValue(until));
+      ..where(
+        usageLogs.ts.isBiggerOrEqualValue(since) &
+            usageLogs.ts.isSmallerThanValue(until),
+      );
     final row = await query.getSingle();
     return (row.read<int>(input) ?? 0, row.read<int>(output) ?? 0);
   }
@@ -32,7 +45,10 @@ class UsageLogDao extends DatabaseAccessor<AppDatabase> with _$UsageLogDaoMixin 
   Future<int> todayTokens({DateTime? now}) async {
     final at = now ?? DateTime.now();
     final start = DateTime(at.year, at.month, at.day);
-    final (input, output) = await usageBetween(start, start.add(const Duration(days: 1)));
+    final (input, output) = await usageBetween(
+      start,
+      start.add(const Duration(days: 1)),
+    );
     return input + output;
   }
 

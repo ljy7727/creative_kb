@@ -3,14 +3,13 @@ import 'dart:io';
 import 'package:creative_kb/core/db/app_setting_keys.dart';
 import 'package:creative_kb/core/db/database.dart';
 import 'package:creative_kb/core/seed/app_seeder.dart';
-import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   late AppDatabase db;
 
   setUp(() {
-    db = AppDatabase(NativeDatabase.memory());
+    db = AppDatabase.inMemory();
   });
 
   tearDown(() async {
@@ -30,7 +29,12 @@ void main() {
     await seeder.run();
     final presets = await db.intensityPresetsDao.getAll();
     expect(presets, hasLength(4));
-    expect(presets.map((p) => p.code).toSet(), {'fast', 'standard', 'deep', 'custom'});
+    expect(presets.map((p) => p.code).toSet(), {
+      'fast',
+      'standard',
+      'deep',
+      'custom',
+    });
     expect(presets.every((p) => p.isBuiltin), isTrue);
     expect(Directory('${appDir.path}/schemas').listSync(), hasLength(4));
 
@@ -43,15 +47,25 @@ void main() {
   test('AppSeeder.run 写入默认设置项', () async {
     await AppSeeder(db, appDirResolver: () async => (await tempAppDir())).run();
 
-    expect(await db.appSettingsDao.get(AppSettingKeys.defaultIntensity), 'standard');
-    expect(await db.appSettingsDao.get(AppSettingKeys.quickIngest), 'false');
-    expect(await db.appSettingsDao.get(AppSettingKeys.updateRepo), 'yourname/creative_kb');
     expect(
-      int.parse(await db.appSettingsDao.get(AppSettingKeys.singleTaskMaxTokens) ?? '0'),
+      await db.appSettingsDao.get(AppSettingKeys.defaultIntensity),
+      'standard',
+    );
+    expect(await db.appSettingsDao.get(AppSettingKeys.quickIngest), 'false');
+    expect(
+      await db.appSettingsDao.get(AppSettingKeys.updateRepo),
+      'yourname/creative_kb',
+    );
+    expect(
+      int.parse(
+        await db.appSettingsDao.get(AppSettingKeys.singleTaskMaxTokens) ?? '0',
+      ),
       greaterThan(0),
     );
     expect(
-      int.parse(await db.appSettingsDao.get(AppSettingKeys.dailyMaxTokens) ?? '0'),
+      int.parse(
+        await db.appSettingsDao.get(AppSettingKeys.dailyMaxTokens) ?? '0',
+      ),
       greaterThan(0),
     );
   });
@@ -73,7 +87,13 @@ void main() {
     expect(presets, hasLength(1));
     expect(presets.single.name, '标准');
 
-    await db.intensityPresetsDao.updateParams('standard', '{"temperature":0.9}');
-    expect((await db.intensityPresetsDao.byCode('standard'))!.params, '{"temperature":0.9}');
+    await db.intensityPresetsDao.updateParams(
+      'standard',
+      '{"temperature":0.9}',
+    );
+    expect(
+      (await db.intensityPresetsDao.byCode('standard'))!.params,
+      '{"temperature":0.9}',
+    );
   });
 }

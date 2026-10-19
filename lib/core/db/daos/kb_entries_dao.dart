@@ -10,11 +10,15 @@ class FtsSearchHit {
 
 /// kb_entries 表 DAO（含 FTS 加权检索）。
 @DriftAccessor(tables: [KbEntries])
-class KbEntriesDao extends DatabaseAccessor<AppDatabase> with _$KbEntriesDaoMixin {
+class KbEntriesDao extends DatabaseAccessor<AppDatabase>
+    with _$KbEntriesDaoMixin {
   KbEntriesDao(super.db);
 
-  Stream<List<KbEntry>> watchAll() => (select(kbEntries)
-            ..orderBy([(t) => OrderingTerm.desc(t.updatedAt), (t) => OrderingTerm.desc(t.id)]))
+  Stream<List<KbEntry>> watchAll() =>
+      (select(kbEntries)..orderBy([
+            (t) => OrderingTerm.desc(t.updatedAt),
+            (t) => OrderingTerm.desc(t.id),
+          ]))
           .watch();
 
   Future<List<KbEntry>> getAll() => select(kbEntries).get();
@@ -22,18 +26,22 @@ class KbEntriesDao extends DatabaseAccessor<AppDatabase> with _$KbEntriesDaoMixi
   Future<KbEntry?> byId(int id) =>
       (select(kbEntries)..where((t) => t.id.equals(id))).getSingleOrNull();
 
-  Future<KbEntry?> byName(String entryName) =>
-      (select(kbEntries)..where((t) => t.entryName.equals(entryName))).getSingleOrNull();
+  Future<KbEntry?> byName(String entryName) => (select(
+    kbEntries,
+  )..where((t) => t.entryName.equals(entryName))).getSingleOrNull();
 
   /// 某分类（不含子级）下的条目。
-  Future<List<KbEntry>> byCategory(String categoryPath) =>
-      (select(kbEntries)..where((t) => t.categoryPath.equals(categoryPath))).get();
+  Future<List<KbEntry>> byCategory(String categoryPath) => (select(
+    kbEntries,
+  )..where((t) => t.categoryPath.equals(categoryPath))).get();
 
   /// 某分类及其子分类下的条目（path 前缀匹配）。
   Future<List<KbEntry>> byCategorySubtree(String categoryPath) =>
-      (select(kbEntries)
-            ..where((t) => t.categoryPath.equals(categoryPath) |
-                t.categoryPath.like('$categoryPath/%')))
+      (select(kbEntries)..where(
+            (t) =>
+                t.categoryPath.equals(categoryPath) |
+                t.categoryPath.like('$categoryPath/%'),
+          ))
           .get();
 
   /// 各分类条目计数（分类树节点角标，docs/02 D4）。
@@ -66,12 +74,14 @@ class KbEntriesDao extends DatabaseAccessor<AppDatabase> with _$KbEntriesDaoMixi
       final score = row.data['score'];
       if (score is num) scores[row.read<int>('e_id')] = score.toDouble();
     }
-    final entries =
-        await (select(kbEntries)..where((t) => t.id.isIn(scores.keys))).get();
+    final entries = await (select(
+      kbEntries,
+    )..where((t) => t.id.isIn(scores.keys))).get();
     final byId = {for (final e in entries) e.id: e};
     return [
       for (final id in scores.keys)
-        if (byId[id] != null) FtsSearchHit(entry: byId[id]!, score: scores[id]!),
+        if (byId[id] != null)
+          FtsSearchHit(entry: byId[id]!, score: scores[id]!),
     ];
   }
 

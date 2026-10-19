@@ -1,0 +1,18 @@
+# 静态检查配置：flutter_lints 基线 + 常用 const 规则（docs/04 T1 定稿）。
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    - build/**
+    - android/**
+    - windows/**
+    - "**/*.g.dart"
+    - "**/*.gr.dart"
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_single_quotes: true

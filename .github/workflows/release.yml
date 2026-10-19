@@ -62,6 +62,8 @@ jobs:
   release:
     needs: [build-windows, build-android]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -74,7 +76,7 @@ jobs:
           name: creative_kb-android
 
       - name: 发布 Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: |
             creative_kb-windows-amd64.zip

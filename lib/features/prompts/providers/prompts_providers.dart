@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/db/database.dart';
 import '../../../core/db/database_provider.dart';
 import '../services/prompt_ai_contracts.dart';
+import '../services/prompt_ai_invoker_impl.dart';
 import '../services/prompt_repository.dart';
 
 /// 模块C 数据仓库。
@@ -10,11 +11,11 @@ final promptRepositoryProvider = Provider<PromptRepository>(
   (ref) => PromptRepository(ref.watch(appDatabaseProvider)),
 );
 
-/// AI 调用接缝（见 PromptAiInvoker 注释）：集成收尾（T7）把 core/llm 的
-/// StructuredOutput/TaskRunner 适配为该接口后 override 本 provider。
+/// AI 调用接缝（见 PromptAiInvoker 注释）：生产默认 LlmPromptAiInvoker
+/// （core/llm 直调 + 额度防护 + 记账，prompt_ai_invoker_impl.dart）；
+/// 测试以脚本化假实现 override 本 provider。
 final promptAiInvokerProvider = Provider<PromptAiInvoker>(
-  (ref) =>
-      throw UnimplementedError('promptAiInvokerProvider 需在集成收尾时接入 core/llm'),
+  (ref) => LlmPromptAiInvoker(ref.watch(appDatabaseProvider)),
 );
 
 final promptAiServiceProvider = Provider<PromptAiService>(

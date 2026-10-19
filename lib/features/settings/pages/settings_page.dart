@@ -16,8 +16,9 @@ import '../../../core/db/database.dart';
 import '../../../core/llm/providers.dart';
 import '../../../core/update/update_checker.dart';
 import '../../kb/models/kb_schema.dart';
+import '../../kb/services/kb_embedding_config.dart';
 import '../../kb/services/kb_providers.dart'
-    show schemaDirProvider, schemaRegistryProvider;
+    show embeddingConfigProvider, schemaDirProvider, schemaRegistryProvider;
 import '../../kb/services/schema_registry.dart';
 import '../providers/settings_providers.dart';
 import '../services/backup_service.dart';
@@ -36,6 +37,8 @@ class SettingsPage extends ConsumerWidget {
               padding: const EdgeInsets.all(16),
               children: const [
                 _ProvidersGroup(),
+                SizedBox(height: 16),
+                _EmbeddingGroup(),
                 SizedBox(height: 16),
                 _IntensityGroup(),
                 SizedBox(height: 16),
@@ -1280,6 +1283,135 @@ class _DataGroupState extends ConsumerState<_DataGroup> {
             ),
           ],
         ),
+      ],
+    );
+  }
+}
+
+/// 向量化模型分组（docs/02 D7）：语义检索的嵌入模型选择；不选择时资料库
+/// 检索自动降级为关键词（FTS）。候选 = 已配 Key 厂商下启用中且带
+///「向量化」标签的模型（kb.embedding_model 设置，见 kb_embedding_config.dart）。
+class _EmbeddingGroup extends ConsumerStatefulWidget {
+  const _EmbeddingGroup();
+
+  @override
+  ConsumerState<_EmbeddingGroup> createState() => _EmbeddingGroupState();
+}
+
+class _EmbeddingGroupState extends ConsumerState<_EmbeddingGroup> {
+  KbEmbeddingConfig? _current;
+  List<(ProviderRow, ModelRow)> _candidates = const [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _reload();
+  }
+
+  Future<void> _reload() async {
+    final db = ref.read(settingsDbProvider);
+    if (db == null) {
+      if (mounted) setState(() => _loading = false);
+      return;
+    }
+    final current = await KbEmbeddingConfigResolver.resolve(db);
+    final providers = await db.providersDao.getAll();
+    final candidates = <(ProviderRow, ModelRow)>[];
+    for (final provider in providers) {
+      if ((provider.keyRef ?? '').isEmpty) continue;
+      final models = await db.modelsDao.activeByProvider(provider.id);
+      for (final model in models) {
+        if (_hasEmbeddingTag(model.tags)) candidates.add((provider, model));
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _current = current;
+      _candidates = candidates;
+      _loading = false;
+    });
+  }
+
+  static bool _hasEmbeddingTag(String tagsJson) {
+    try {
+      final decoded = jsonDecode(tagsJson);
+      if (decoded is List && decoded.contains('embedding')) return true;
+    } on FormatException {
+      // tags 损坏按无标签处理（与 _ModelTile 同容错）。
+    }
+    return false;
+  }
+
+  int get _groupValue {
+    if (_current == null) return -1;
+    for (var i = 0; i < _candidates.length; i++) {
+      final (provider, model) = _candidates[i];
+      if (provider.id == _current!.providerId &&
+          model.modelId == _current!.model) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  Future<void> _select(int index) async {
+    final db = ref.read(settingsDbProvider);
+    if (db == null) return;
+    if (index < 0) {
+      await KbEmbeddingConfigResolver.clear(db);
+    } else {
+      final (provider, model) = _candidates[index];
+      await KbEmbeddingConfigResolver.save(
+        db,
+        providerId: provider.id,
+        model: model.modelId,
+      );
+    }
+    // kb 模块 FutureProvider 有缓存，失效后检索页/详情页立即按新配置工作。
+    ref.invalidate(embeddingConfigProvider);
+    await _reload();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _Section(
+      title: '向量化模型',
+      subtitle: '用于资料库语义检索；不选择时自动降级为关键词检索',
+      children: [
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_candidates.isEmpty)
+          const Text(
+            '暂无可用的向量化模型：先在「厂商与模型」中添加 API Key 并拉取模型，'
+            '标签为「向量化」的模型会出现在这里（通义/智谱等厂商提供）。',
+          )
+        else
+          RadioGroup<int>(
+            groupValue: _groupValue,
+            onChanged: (value) => _select(value ?? -1),
+            child: Column(
+              children: [
+                const RadioListTile<int>(
+                  value: -1,
+                  title: Text('不使用向量化'),
+                  subtitle: Text('仅关键词检索'),
+                  contentPadding: EdgeInsets.zero,
+                ),
+                for (var i = 0; i < _candidates.length; i++)
+                  RadioListTile<int>(
+                    value: i,
+                    title: Text(
+                      '${_candidates[i].$1.name} / ${_candidates[i].$2.modelId}',
+                    ),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+              ],
+            ),
+          ),
       ],
     );
   }

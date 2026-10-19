@@ -98,15 +98,15 @@ final backupServiceProvider = FutureProvider<BackupService?>((ref) async {
   );
 });
 
-/// 更新检查仓库（owner/repo 字符串，占位 yourname/creative_kb）。
+/// 更新检查仓库（owner/repo 字符串，默认 ljy7727/creative_kb）。
 final updateRepoSettingProvider = StreamProvider<String>((ref) {
   final db = ref.watch(settingsDbProvider);
-  if (db == null) return Stream.value('yourname/creative_kb');
+  if (db == null) return Stream.value('ljy7727/creative_kb');
   return db.appSettingsDao
       .watch(AppSettingKeys.updateRepo)
       .map(
         (value) =>
-            (value == null || value.isEmpty) ? 'yourname/creative_kb' : value,
+            (value == null || value.isEmpty) ? 'ljy7727/creative_kb' : value,
       );
 });
 

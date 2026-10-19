@@ -42,7 +42,7 @@ class AppSeeder {
     await _setIfAbsent(AppSettingKeys.dailyMaxTokens, '2000000');
     await _setIfAbsent(AppSettingKeys.defaultIntensity, 'standard');
     await _setIfAbsent(AppSettingKeys.quickIngest, 'false');
-    await _setIfAbsent(AppSettingKeys.updateRepo, 'yourname/creative_kb');
+    await _setIfAbsent(AppSettingKeys.updateRepo, 'ljy7727/creative_kb');
     await _setIfAbsent(AppSettingKeys.updateAutoCheck, 'true');
   }
 

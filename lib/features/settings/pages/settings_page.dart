@@ -1024,7 +1024,7 @@ class _UpdateGroupState extends ConsumerState<_UpdateGroup> {
     final value = _repoController.text.trim();
     final parsed = parseUpdateRepo(value);
     if (parsed == null) {
-      _toast(context, '格式应为 owner/repo，例如 yourname/creative_kb');
+      _toast(context, '格式应为 owner/repo，例如 ljy7727/creative_kb');
       return;
     }
     await ref

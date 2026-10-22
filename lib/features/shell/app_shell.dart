@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/update/update_dialog.dart';
+import '../../features/books/pages/books_page.dart';
 import '../../features/fragments/pages/fragments_page.dart';
 import '../../features/kb/pages/kb_page.dart';
 import '../../features/memos/pages/memos_page.dart';
@@ -44,6 +45,12 @@ const _tabs = <ShellTab>[
     icon: Icons.menu_book_outlined,
     selectedIcon: Icons.menu_book,
     page: KbPage(),
+  ),
+  ShellTab(
+    title: '书籍',
+    icon: Icons.auto_stories_outlined,
+    selectedIcon: Icons.auto_stories,
+    page: BooksPage(),
   ),
   ShellTab(
     title: '备忘录',

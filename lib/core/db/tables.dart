@@ -270,3 +270,31 @@ class PasswordEntries extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// 书籍（v0.4）：自建 self / 导入 imported / 内置 builtin。
+/// builtinKey 标记随应用内置的书籍（如公众号导读），避免重复导入。
+@DataClassName('BookRow')
+class Books extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text()();
+  TextColumn get author => text().withDefault(const Constant(''))();
+  TextColumn get kind => text().withDefault(const Constant('self'))();
+  TextColumn get sourceUrl => text().withDefault(const Constant(''))();
+  TextColumn get builtinKey => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 书籍章节：chapterIndex 从 0 递增；content 为 Markdown
+/// （支持 `assets/...` 图片路径与 http(s) 图片链接）。
+@DataClassName('BookChapterRow')
+@TableIndex(name: 'idx_book_chapters_book', columns: {#bookId})
+class BookChapters extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get bookId => integer()();
+  IntColumn get chapterIndex => integer()();
+  TextColumn get title => text()();
+  TextColumn get content => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+

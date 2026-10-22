@@ -17,6 +17,8 @@ export 'tables.dart';
 
 part 'database.g.dart';
 part 'daos/app_settings_dao.dart';
+part 'daos/book_chapters_dao.dart';
+part 'daos/books_dao.dart';
 part 'daos/embeddings_dao.dart';
 part 'daos/fragments_dao.dart';
 part 'daos/intensity_presets_dao.dart';
@@ -50,6 +52,8 @@ part 'daos/usage_log_dao.dart';
     AppSettings,
     Memos,
     PasswordEntries,
+    Books,
+    BookChapters,
   ],
   daos: [
     ProvidersDao,
@@ -67,6 +71,8 @@ part 'daos/usage_log_dao.dart';
     AppSettingsDao,
     MemosDao,
     PasswordEntriesDao,
+    BooksDao,
+    BookChaptersDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -88,7 +94,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -97,10 +103,15 @@ class AppDatabase extends _$AppDatabase {
       await _createFtsObjects();
     },
     onUpgrade: (m, from, to) async {
-      // v1 → v2：新增备忘录与密码本两张表（只增不改，无需重建 kb_fts）。
+      // v1 → v2：备忘录与密码本。
       if (from < 2) {
         await m.createTable(memos);
         await m.createTable(passwordEntries);
+      }
+      // v2 → v3：书籍与章节。
+      if (from < 3) {
+        await m.createTable(books);
+        await m.createTable(bookChapters);
       }
     },
   );

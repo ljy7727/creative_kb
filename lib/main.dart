@@ -10,6 +10,7 @@ import 'core/db/database.dart';
 import 'core/db/database_provider.dart';
 import 'core/seed/app_data_dir.dart';
 import 'core/seed/app_seeder.dart';
+import 'features/books/services/default_book_seeder.dart';
 import 'features/settings/services/backup_service.dart';
 
 Future<void> main() async {
@@ -41,6 +42,8 @@ Future<void> main() async {
   // 初始化数据库并执行首启种子（schemas 落盘、intensity 预设、默认设置）。
   final db = AppDatabase.open();
   await AppSeeder(db).run();
+  // 内置书籍（公众号导读 + 图解）——同 builtinKey 已存在时跳过。
+  await DefaultBookSeeder.run(db);
 
   runApp(
     ProviderScope(

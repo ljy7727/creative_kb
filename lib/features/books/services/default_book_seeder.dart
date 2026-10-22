@@ -9,10 +9,22 @@ import 'package:flutter/services.dart' show rootBundle;
 import '../../../core/db/database.dart';
 
 class DefaultBookSeeder {
-  static const assetPath = 'assets/books/gaoxingjiabi/book.json';
+  /// 随应用内置的书籍资源（book.json：builtinKey/title/author/kind/chapters）。
+  static const assetPaths = <String>[
+    'assets/books/gaoxingjiabi/book.json',
+    'assets/books/vibe-vibe/book.json',
+  ];
 
-  /// 返回 true 表示本次实际写入（新装或升级后的首次运行）。
-  static Future<bool> run(AppDatabase db) async {
+  /// 逐本播种；返回本次实际写入的书籍数。
+  static Future<int> run(AppDatabase db) async {
+    var seeded = 0;
+    for (final asset in assetPaths) {
+      if (await _seedOne(db, asset)) seeded += 1;
+    }
+    return seeded;
+  }
+
+  static Future<bool> _seedOne(AppDatabase db, String assetPath) async {
     try {
       final raw = await rootBundle.loadString(assetPath);
       final data = jsonDecode(raw);
@@ -28,7 +40,7 @@ class DefaultBookSeeder {
           BooksCompanion.insert(
             title: '${data['title'] ?? '未命名书籍'}',
             author: Value('${data['author'] ?? ''}'),
-            kind: const Value('builtin'),
+            kind: Value('${data['kind'] ?? 'builtin'}'),
             sourceUrl: Value('${data['sourceUrl'] ?? ''}'),
             builtinKey: Value(key),
             createdAt: Value(now),
@@ -53,7 +65,7 @@ class DefaultBookSeeder {
       });
       return true;
     } catch (error) {
-      debugPrint('内置书籍播种失败：$error');
+      debugPrint('内置书籍播种失败（$assetPath）：$error');
       return false;
     }
   }

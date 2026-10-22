@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../../../core/db/app_setting_keys.dart';
 import '../../../core/db/database.dart';
 import '../../../core/db/database_provider.dart';
+import '../../../core/llm/deepseek_tools.dart';
 import '../../../core/seed/app_data_dir.dart';
 import '../../../core/search/hybrid_search.dart';
 import '../../../core/tasks/task_runner_provider.dart';
@@ -17,6 +18,7 @@ import 'kb_ai_gateway_impl.dart';
 import 'kb_embedding_config.dart';
 import 'kb_entry_service.dart';
 import 'kb_ingest_task.dart';
+import 'kb_research_service.dart';
 import 'kb_vector_task.dart';
 import 'schema_registry.dart';
 
@@ -177,5 +179,24 @@ final kbIngestTaskProvider = Provider<KbIngestTask>((ref) {
       if (dir == null) return <KbSchema>[KbSchema.fallbackGeneral()];
       return SchemaRegistry(dir).load();
     },
+  );
+});
+
+/// DeepSeek Search/Fetch 客户端（资料库 AI 搜集专用；测试可 override 注入假实现）。
+final deepSeekToolsProvider = Provider<DeepSeekToolsClient>(
+  (ref) => DeepSeekToolsClient(),
+);
+
+/// AI 搜集服务：DeepSeek 搜索/抓取 + KbIngestTask 结构化。
+final kbResearchServiceProvider = Provider<KbResearchService>((ref) {
+  final db = ref.watch(kbDbProvider);
+  if (db == null) throw StateError('数据库未初始化');
+  if (!(ref.watch(kbAiAvailableProvider).value ?? false)) {
+    throw StateError('未配置可用 AI 模型');
+  }
+  return KbResearchService(
+    db,
+    tools: ref.watch(deepSeekToolsProvider),
+    ingest: ref.watch(kbIngestTaskProvider),
   );
 });

@@ -98,18 +98,6 @@ final backupServiceProvider = FutureProvider<BackupService?>((ref) async {
   );
 });
 
-/// 更新检查仓库（owner/repo 字符串，默认 ljy7727/creative_kb）。
-final updateRepoSettingProvider = StreamProvider<String>((ref) {
-  final db = ref.watch(settingsDbProvider);
-  if (db == null) return Stream.value('ljy7727/creative_kb');
-  return db.appSettingsDao
-      .watch(AppSettingKeys.updateRepo)
-      .map(
-        (value) =>
-            (value == null || value.isEmpty) ? 'ljy7727/creative_kb' : value,
-      );
-});
-
 /// 启动时自动检查开关（默认开，docs/02 A6）。
 final updateAutoCheckProvider = StreamProvider<bool>((ref) {
   final db = ref.watch(settingsDbProvider);
@@ -127,33 +115,15 @@ final appVersionProvider = FutureProvider<String>(
   (ref) => resolveCurrentVersion(),
 );
 
-/// 拆分 owner/repo 设置值为两部分；非法值返回 null。
-({String owner, String repo})? parseUpdateRepo(String value) {
-  final trimmed = value.trim();
-  if (trimmed.isEmpty) return null;
-  final slash = trimmed.indexOf('/');
-  if (slash <= 0 || slash == trimmed.length - 1) return null;
-  return (
-    owner: trimmed.substring(0, slash),
-    repo: trimmed.substring(slash + 1),
-  );
-}
-
-/// 启动自动检查结果（AppShell 消费后弹对话框；null = 无新版/未开启/未配置）。
+/// 启动自动检查结果（AppShell 消费后弹对话框；null = 无新版/未开启）。
+/// 发布仓库内置在 UpdateChecker（无需用户配置 owner/repo）。
 final startupUpdateProvider = FutureProvider<UpdateCheckResult?>((ref) async {
   final db = ref.watch(settingsDbProvider);
   if (db == null) return null;
   final autoCheck = await db.appSettingsDao.get(AppSettingKeys.updateAutoCheck);
   if (autoCheck == 'false') return null;
-  final repoRaw = await db.appSettingsDao.get(AppSettingKeys.updateRepo) ?? '';
-  final repo = parseUpdateRepo(repoRaw);
-  if (repo == null) return null;
   final result = await ref
       .read(updateCheckerProvider)
-      .check(
-        owner: repo.owner,
-        repo: repo.repo,
-        currentVersion: await resolveCurrentVersion(),
-      );
+      .checkDefault(currentVersion: await resolveCurrentVersion());
   return result.hasUpdate ? result : null;
 });

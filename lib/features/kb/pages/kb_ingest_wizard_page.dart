@@ -24,10 +24,19 @@ import '../widgets/kb_widgets.dart';
 /// 参数支持 `{RouteArgs.fragmentId: int}`（从碎片转入并预填原文）或
 /// `{'initialText': String}`（直接预填文本）。
 class KbIngestWizardPage extends ConsumerStatefulWidget {
-  const KbIngestWizardPage({super.key, this.initialText, this.fragmentId});
+  const KbIngestWizardPage({
+    super.key,
+    this.initialText,
+    this.fragmentId,
+    this.precomputed,
+  });
 
   final String? initialText;
   final int? fragmentId;
+
+  /// AI 搜集等前置管线已产出的结构化结果；非空时跳过输入/AI 步，
+  /// 直接进入「校验映射」（用户仍可修改分类/字段后预览入库）。
+  final KbIngestResult? precomputed;
 
   @override
   ConsumerState<KbIngestWizardPage> createState() => _KbIngestWizardPageState();
@@ -89,6 +98,13 @@ class _KbIngestWizardPageState extends ConsumerState<KbIngestWizardPage> {
     final fragmentId = widget.fragmentId;
     if (fragmentId != null) {
       _loadFragment(fragmentId);
+    }
+    final precomputed = widget.precomputed;
+    if (precomputed != null) {
+      _aiUsed = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _applyPrecomputed(precomputed);
+      });
     }
     _loadDefaultIntensity();
   }
@@ -203,6 +219,21 @@ class _KbIngestWizardPageState extends ConsumerState<KbIngestWizardPage> {
             extra: Map<String, Object?>.of(entry.extra),
           ),
       ]);
+  }
+
+  /// 外部管线（AI 搜集）预置结果：跳过输入/AI 步，直接进入校验映射。
+  Future<void> _applyPrecomputed(KbIngestResult result) async {
+    try {
+      await _applyResult(result);
+      if (!mounted) return;
+      setState(() => _step = _Step.mapping);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _aiError = '载入结构化结果失败：$e';
+        _step = _Step.ai;
+      });
+    }
   }
 
   /// 无 AI 时的手动整理：单条草稿，原文作正文，分类「未分类」，Schema 按关键词建议。

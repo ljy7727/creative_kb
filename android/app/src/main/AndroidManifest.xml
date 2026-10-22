@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 应用内下载新版本 APK 并拉起系统安装器（更新检查「下载并安装」）。 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application
         android:label="creative_kb"
         android:name="${applicationName}"

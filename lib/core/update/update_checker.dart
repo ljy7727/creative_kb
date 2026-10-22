@@ -107,6 +107,18 @@ class UpdateChecker {
 
   final Dio _dio;
 
+  /// 内置发布仓库：应用内更新无需用户填写 owner/repo。
+  static const defaultOwner = 'ljy7727';
+  static const defaultRepo = 'creative_kb';
+
+  /// 检查内置仓库的最新版本（设置页与启动自动检查共用）。
+  Future<UpdateCheckResult> checkDefault({required String currentVersion}) =>
+      check(
+        owner: defaultOwner,
+        repo: defaultRepo,
+        currentVersion: currentVersion,
+      );
+
   /// 查询 {owner}/{repo} 的最新 release。
   /// 404 → 返回 latest=null（未发布，静默）；4xx/5xx → 抛 DioException。
   Future<UpdateCheckResult> check({

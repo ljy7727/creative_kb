@@ -10,21 +10,22 @@ Flutter 单代码库，支持 **Windows 桌面** 与 **Android**。数据 100% �
 - **提示词库**：小说/绘画/Agent 三类模板，从碎片生成 3 风格版本对比保存、
   定向优化（压缩/扩写/适配模型/风格转换）、变量提取与填充复制、版本历史与一键回滚
 - **创作资料库**：五步入库向导（粘贴/文件导入 → AI 清洗分类 → Schema 校验映射 → 预览 → 入库）、
+  **AI 搜集**（DeepSeek Search/Fetch 联网收集资料 → 自动结构化 → 预览入库）、
   内置 4 套分类 Schema（通用/历史官职/仙侠宝物/宗门势力），用户可编辑/新增（JSON 热加载）、
   分类树、条目双向关联跳转、FTS5 关键词 + 语义混合检索（未配置嵌入模型自动降级并提示）、极速入库模式
 - **Agent 中枢**：多厂商 API Key（DeepSeek/通义千问/豆包/智谱/自定义；Key 只写系统安全存储，
-  数据库仅存引用名）、一键拉取模型并自动打标签（可手动修正）、4 档思考强度、
+  数据库仅存引用名；输入框支持粘贴）、一键拉取模型并自动打标签（可手动修正）、4 档思考强度、
   任务队列（重试/超时/额度拦截）、全链路 token 记账与单次/单日额度防护、数据导出导入（zip）
 - **用量统计**：今日/累计 token、按模块与模型图表、最近明细与费用参考（内置价格表，查不到只记 token）
-- **更新检查**：GitHub Releases semver 比对（设置页配置 owner/repo，启动自动检查可关）；
-  桌面打开 Release 页，Android 直接打开 APK 下载
+- **更新检查**：发布仓库内置，一键检查最新版本（无需配置）；Android 应用内下载并拉起安装，
+  桌面打开 Release 页；启动自动检查可关
 - 响应式导航：宽度 ≥900 侧栏（NavigationRail）/ 700–899 折叠 / <700 底部导航（NavigationBar）；
   首启无配置时各页面均有空态引导
 
 ## 技术栈
 
 Flutter（Material 3 中文）· flutter_riverpod · drift（SQLite + FTS5 trigram）· dio（OpenAI 兼容 SSE）
-· flutter_secure_storage · flutter_markdown · archive（备份 zip）· window_manager（Windows 默认 1200×800，最小 900×600）
+· flutter_secure_storage · flutter_markdown · archive（备份 zip）· open_filex（APK 安装）· window_manager（Windows 默认 1200×800，最小 900×600）
 
 ## 目录结构（关键部分）
 

@@ -6,6 +6,7 @@ import '../../../shared/empty_state.dart';
 import '../services/kb_providers.dart';
 import '../widgets/category_tree.dart';
 import '../widgets/kb_widgets.dart';
+import 'kb_research_page.dart';
 
 /// 模块3 创作资料库首页（docs/02 D4）：
 /// 宽屏 = 左分类树 + 右条目列表双栏；窄屏 = 列表 + 底部弹层选分类。
@@ -25,6 +26,12 @@ class _KbPageState extends ConsumerState<KbPage> {
 
   void _openSearch() {
     Navigator.of(context).pushNamed(RoutePaths.kbSearch);
+  }
+
+  void _openResearch() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(builder: (_) => const KbResearchPage()),
+    );
   }
 
   void _openEntry(int entryId) => navigateToKbEntry(context, entryId);
@@ -76,6 +83,7 @@ class _KbPageState extends ConsumerState<KbPage> {
               final header = _Header(
                 onSearch: _openSearch,
                 onWizard: _openWizard,
+                onResearch: _openResearch,
                 showCategoryButton: !wide,
                 onSelectCategory: wide
                     ? null
@@ -209,12 +217,14 @@ class _Header extends StatelessWidget {
   const _Header({
     required this.onSearch,
     required this.onWizard,
+    required this.onResearch,
     required this.showCategoryButton,
     this.onSelectCategory,
   });
 
   final VoidCallback onSearch;
   final VoidCallback onWizard;
+  final VoidCallback onResearch;
   final bool showCategoryButton;
   final VoidCallback? onSelectCategory;
 
@@ -258,6 +268,11 @@ class _Header extends StatelessWidget {
             onPressed: onWizard,
             icon: const Icon(Icons.add),
             label: const Text('入库向导'),
+          ),
+          FilledButton.tonalIcon(
+            onPressed: onResearch,
+            icon: const Icon(Icons.auto_awesome),
+            label: const Text('AI 搜集'),
           ),
         ],
       ),

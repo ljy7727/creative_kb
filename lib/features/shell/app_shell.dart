@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
-import '../../core/update/update_checker.dart';
+import '../../core/update/update_dialog.dart';
 import '../../features/fragments/pages/fragments_page.dart';
 import '../../features/kb/pages/kb_page.dart';
 import '../../features/prompts/pages/prompts_page.dart';
@@ -88,49 +86,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     try {
       final result = await ref.read(startupUpdateProvider.future);
       if (result == null || !result.hasUpdate || !mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(
-            '发现新版本 ${result.tagName ?? ''}（当前 ${result.currentVersion}）',
-          ),
-          content: SizedBox(
-            width: 480,
-            child: result.releaseNotes == null || result.releaseNotes!.isEmpty
-                ? const Text('（无 Release Notes）')
-                : SizedBox(
-                    height: 280,
-                    child: MarkdownBody(data: result.releaseNotes!),
-                  ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('稍后再说'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final url = UpdateChecker.downloadUrl(
-                  result,
-                  isAndroid: UpdateChecker.isAndroidPlatform,
-                );
-                try {
-                  await launchUrl(
-                    Uri.parse(url),
-                    mode: LaunchMode.externalApplication,
-                  );
-                } catch (_) {
-                  // 打开失败不打断主流程，用户可稍后在设置页手动检查。
-                }
-                if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-              },
-              child: const Text('前往下载'),
-            ),
-          ],
-        ),
-      );
+      await showUpdateDialog(context, result);
     } catch (_) {
-      // 网络异常/未配置仓库：静默，不打扰启动流程。
+      // 网络异常：静默，不打扰启动流程。
     }
   }
 

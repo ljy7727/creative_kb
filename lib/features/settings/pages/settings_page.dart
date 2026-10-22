@@ -7,14 +7,14 @@ import 'dart:io';
 import 'package:drift/drift.dart' show Value;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:flutter/services.dart' show Clipboard;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/db/app_setting_keys.dart';
 import '../../../core/db/database.dart';
 import '../../../core/llm/providers.dart';
 import '../../../core/update/update_checker.dart';
+import '../../../core/update/update_dialog.dart';
 import '../../kb/models/kb_schema.dart';
 import '../../kb/services/kb_embedding_config.dart';
 import '../../kb/services/kb_providers.dart'
@@ -97,6 +97,16 @@ void _toast(BuildContext context, String message) {
   ScaffoldMessenger.of(context)
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(content: Text(message)));
+}
+
+/// 从剪贴板粘贴到 API Key 输入框（安全键盘禁用复制时的替代入口）。
+Future<void> _pasteKey(TextEditingController controller) async {
+  final data = await Clipboard.getData(Clipboard.kTextPlain);
+  final text = data?.text?.trim();
+  if (text == null || text.isEmpty) return;
+  controller
+    ..text = text
+    ..selection = TextSelection.collapsed(offset: text.length);
 }
 
 // ---------------------------------------------------------------------------
@@ -269,11 +279,20 @@ class _ProviderTileState extends ConsumerState<_ProviderTile> {
                   Expanded(
                     child: TextField(
                       controller: _keyController,
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      // 不用 password 模式：Android 安全键盘会禁用复制粘贴，
+                      // API Key 很长，必须支持从剪贴板粘贴。
+                      obscureText: false,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      decoration: InputDecoration(
                         labelText: 'API Key',
-                        border: OutlineInputBorder(),
+                        border: const OutlineInputBorder(),
                         isDense: true,
+                        suffixIcon: IconButton(
+                          tooltip: '从剪贴板粘贴',
+                          icon: const Icon(Icons.content_paste),
+                          onPressed: () => _pasteKey(_keyController),
+                        ),
                       ),
                     ),
                   ),
@@ -487,9 +506,16 @@ Future<void> _showAddProviderDialog(BuildContext context, WidgetRef ref) async {
             ),
             TextField(
               controller: keyController,
-              obscureText: true,
-              decoration: const InputDecoration(
+              obscureText: false,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: InputDecoration(
                 labelText: 'API Key（可稍后在列表中填写）',
+                suffixIcon: IconButton(
+                  tooltip: '从剪贴板粘贴',
+                  icon: const Icon(Icons.content_paste),
+                  onPressed: () => _pasteKey(keyController),
+                ),
               ),
             ),
           ],
@@ -999,60 +1025,19 @@ class _UpdateGroup extends ConsumerStatefulWidget {
 }
 
 class _UpdateGroupState extends ConsumerState<_UpdateGroup> {
-  final _repoController = TextEditingController();
-  bool _loaded = false;
   bool _checking = false;
   String? _lastChecked;
-
-  @override
-  void dispose() {
-    _repoController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadOnce() async {
-    // 流式设置项首帧可能尚未就绪：拿到值前每帧重试，拿到后停止。
-    if (_loaded) return;
-    final repo = ref.read(updateRepoSettingProvider).value;
-    if (repo == null) return;
-    _loaded = true;
-    _repoController.text = repo;
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _saveRepo() async {
-    final value = _repoController.text.trim();
-    final parsed = parseUpdateRepo(value);
-    if (parsed == null) {
-      _toast(context, '格式应为 owner/repo，例如 ljy7727/creative_kb');
-      return;
-    }
-    await ref
-        .read(settingsDbProvider)!
-        .appSettingsDao
-        .set(AppSettingKeys.updateRepo, value);
-    if (mounted) _toast(context, '已保存：$value');
-  }
 
   Future<void> _checkNow() async {
     if (_checking) return;
     setState(() => _checking = true);
     try {
-      final parsed = parseUpdateRepo(_repoController.text.trim());
-      if (parsed == null) {
-        _toast(context, '请先填写仓库（owner/repo）');
-        return;
-      }
       final result = await ref
           .read(updateCheckerProvider)
-          .check(
-            owner: parsed.owner,
-            repo: parsed.repo,
-            currentVersion: await resolveCurrentVersion(),
-          );
+          .checkDefault(currentVersion: await resolveCurrentVersion());
       if (!mounted) return;
       if (result.hasUpdate) {
-        await _showUpdateDialog(context, result);
+        await showUpdateDialog(context, result);
       } else {
         _toast(context, '当前已是最新版本（${result.currentVersion}）');
       }
@@ -1066,33 +1051,19 @@ class _UpdateGroupState extends ConsumerState<_UpdateGroup> {
 
   @override
   Widget build(BuildContext context) {
-    _loadOnce();
     final autoCheck = ref.watch(updateAutoCheckProvider).value ?? true;
     final version = ref.watch(appVersionProvider).value;
     return _Section(
       title: '更新检查',
       subtitle:
-          '连接 GitHub Releases 检查新版本；404（未发布）静默跳过。'
-          '桌面端「前往下载」打开 Release 页，Android 直接打开 APK 下载。',
+          '一键检查 GitHub 上的最新版本；发现更新时可直接下载安装。'
+          '发布仓库已内置，无需配置。',
       children: [
-        TextField(
-          controller: _repoController,
-          decoration: InputDecoration(
-            labelText: '仓库（owner/repo）',
-            border: const OutlineInputBorder(),
-            isDense: true,
-            helperText: version == null ? null : '当前版本 $version',
+        if (version != null)
+          Text(
+            '当前版本 $version',
+            style: Theme.of(context).textTheme.bodySmall,
           ),
-        ),
-        const SizedBox(height: 8),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: _saveRepo,
-            icon: const Icon(Icons.save_outlined),
-            label: const Text('保存仓库'),
-          ),
-        ),
         Row(
           children: [
             Expanded(
@@ -1132,55 +1103,8 @@ class _UpdateGroupState extends ConsumerState<_UpdateGroup> {
   }
 }
 
-/// 发现新版本对话框：Release Notes（markdown）+ 前往下载。
-Future<void> _showUpdateDialog(
-  BuildContext context,
-  UpdateCheckResult result,
-) async {
-  await showDialog<void>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text('发现新版本 ${result.tagName ?? ''}'),
-      content: SizedBox(
-        width: 480,
-        child: result.releaseNotes == null || result.releaseNotes!.isEmpty
-            ? const Text('（无 Release Notes）')
-            : SizedBox(
-                height: 280,
-                child: MarkdownBody(data: result.releaseNotes!),
-              ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(dialogContext).pop(),
-          child: const Text('稍后再说'),
-        ),
-        FilledButton(
-          onPressed: () async {
-            final url = UpdateChecker.downloadUrl(
-              result,
-              isAndroid: UpdateChecker.isAndroidPlatform,
-            );
-            try {
-              await launchUrl(
-                Uri.parse(url),
-                mode: LaunchMode.externalApplication,
-              );
-            } catch (e) {
-              if (!dialogContext.mounted) return;
-              await showDialog<void>(
-                context: dialogContext,
-                builder: (_) => AlertDialog(content: Text('无法打开链接：$url\n$e')),
-              );
-            }
-          },
-          child: const Text('前往下载'),
-        ),
-      ],
-    ),
-  );
-}
-
+/// 发现新版本对话框：Release Notes（markdown）+ 下载并安装/前往下载。
+/// 实现见 core/update/update_dialog.dart（与启动自动检查共用）。
 // ---------------------------------------------------------------------------
 // 分组六：数据导出 / 导入（docs/02 模块E）
 // ---------------------------------------------------------------------------

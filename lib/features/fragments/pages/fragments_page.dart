@@ -1,6 +1,7 @@
 // 模块B 灵感碎片首页（docs/02 B1/B2/B3）：
 // 顶部常驻录入区（多行输入、Enter 换行、Ctrl+Enter 提交、AI 优化复选框、
 // 强度选择器、标签快速输入）+ 标签筛选/关键词搜索 + 时间倒序列表。
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,6 +32,13 @@ class _FragmentsPageState extends ConsumerState<FragmentsPage> {
   final _searchController = TextEditingController();
   bool _useAi = true;
   String? _intensityCode;
+  bool _ocrBusy = false;
+  static const _ocrMimeByExt = <String, String>{
+    'png': 'image/png',
+    'webp': 'image/webp',
+    'gif': 'image/gif',
+    'bmp': 'image/bmp',
+  };
 
   @override
   void dispose() {
@@ -81,6 +89,44 @@ class _FragmentsPageState extends ConsumerState<FragmentsPage> {
           ..hideCurrentSnackBar()
           ..showSnackBar(const SnackBar(content: Text('灵感已保存')));
       }
+    }
+  }
+
+  /// 图片 OCR：选图 → 视觉模型识别 → 文字追加到输入框（再走常规保存/优化）。
+  Future<void> _ocrImage() async {
+    if (_ocrBusy) return;
+    try {
+      final file = await FilePicker.pickFile(type: FileType.image);
+      if (file == null) return;
+      setState(() => _ocrBusy = true);
+      final bytes = await file.xFile.readAsBytes();
+      final ext = file.name.contains('.')
+          ? file.name.split('.').last.toLowerCase()
+          : 'jpg';
+      final result = await ref
+          .read(visionOcrServiceProvider)
+          .recognize(bytes, mimeType: _ocrMimeByExt[ext] ?? 'image/jpeg');
+      if (!mounted) return;
+      final existing = _textController.text.trimRight();
+      final merged = existing.isEmpty
+          ? result.text
+          : '$existing\n${result.text}';
+      _textController.text = merged;
+      _textController.selection = TextSelection.collapsed(
+        offset: merged.length,
+      );
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('已识别并填入文字（${result.model}）')),
+        );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('$e')));
+    } finally {
+      if (mounted) setState(() => _ocrBusy = false);
     }
   }
 
@@ -137,6 +183,8 @@ class _FragmentsPageState extends ConsumerState<FragmentsPage> {
                   onIntensityChanged: (code) =>
                       setState(() => _intensityCode = code),
                   onSubmit: _submit,
+                  onOcr: _ocrBusy ? null : _ocrImage,
+                  ocrBusy: _ocrBusy,
                 ),
               ),
               const SizedBox(height: 8),
@@ -234,6 +282,8 @@ class _EntryCard extends StatelessWidget {
     required this.selectedIntensity,
     required this.onIntensityChanged,
     required this.onSubmit,
+    required this.onOcr,
+    this.ocrBusy = false,
   });
 
   final TextEditingController textController;
@@ -246,6 +296,10 @@ class _EntryCard extends StatelessWidget {
   final String selectedIntensity;
   final ValueChanged<String> onIntensityChanged;
   final VoidCallback onSubmit;
+
+  /// 图片 OCR（识别后把文字追加进输入框）；null = 进行中禁用。
+  final VoidCallback? onOcr;
+  final bool ocrBusy;
 
   @override
   Widget build(BuildContext context) {
@@ -334,6 +388,17 @@ class _EntryCard extends StatelessWidget {
                       isDense: true,
                     ),
                   ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: onOcr,
+                  icon: ocrBusy
+                      ? const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.image_search),
+                  label: Text(ocrBusy ? '识别中…' : '图片 OCR'),
                 ),
                 FilledButton.icon(
                   onPressed: onSubmit,

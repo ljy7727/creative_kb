@@ -14,8 +14,8 @@ abstract class KeyStore {
   Future<bool> containsKey(String key);
 }
 
-class _FlutterSecureKeyStore implements KeyStore {
-  const _FlutterSecureKeyStore();
+class SecureKeyStore implements KeyStore {
+  const SecureKeyStore();
 
   static const _storage = FlutterSecureStorage();
 
@@ -36,7 +36,7 @@ class _FlutterSecureKeyStore implements KeyStore {
 /// API Key 存取。keyRef 引用名的生成见 core/llm/providers.dart 的 buildKeyRef。
 class SecureKeys {
   SecureKeys({KeyStore? store})
-    : _store = store ?? const _FlutterSecureKeyStore();
+    : _store = store ?? const SecureKeyStore();
 
   final KeyStore _store;
 

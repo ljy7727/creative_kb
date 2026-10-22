@@ -246,3 +246,27 @@ abstract final class KbFts {
   /// bm25 返回负值，越小越相关。
   static const bm25Weighted = 'bm25(kb_fts, 3.0, 2.0, 1.0)';
 }
+
+/// 备忘录：文本 + 图片。图片文件存放于应用数据目录（memos/），本表只存路径 JSON。
+@DataClassName('MemoRow')
+class Memos extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get content => text().withDefault(const Constant(''))();
+  TextColumn get images => text().withDefault(const Constant('[]'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+/// 密码本条目：名称明文（列表展示），自定义字段（label/value 数组）与备注
+/// 用 AES-GCM 加密后存 base64 密文；主密钥在系统安全存储（core/crypto）。
+@DataClassName('PasswordEntryRow')
+class PasswordEntries extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text()();
+  TextColumn get fieldsEnc => text()();
+  TextColumn get noteEnc => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+

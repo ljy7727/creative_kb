@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/update/update_dialog.dart';
 import '../../features/fragments/pages/fragments_page.dart';
 import '../../features/kb/pages/kb_page.dart';
+import '../../features/memos/pages/memos_page.dart';
+import '../../features/passwords/pages/passwords_page.dart';
 import '../../features/prompts/pages/prompts_page.dart';
 import '../../features/settings/pages/settings_page.dart';
 import '../../features/settings/providers/settings_providers.dart';
@@ -42,6 +44,18 @@ const _tabs = <ShellTab>[
     icon: Icons.menu_book_outlined,
     selectedIcon: Icons.menu_book,
     page: KbPage(),
+  ),
+  ShellTab(
+    title: '备忘录',
+    icon: Icons.sticky_note_2_outlined,
+    selectedIcon: Icons.sticky_note_2,
+    page: MemosPage(),
+  ),
+  ShellTab(
+    title: '密码本',
+    icon: Icons.key_outlined,
+    selectedIcon: Icons.key,
+    page: PasswordsPage(),
   ),
   ShellTab(
     title: '用量',

@@ -11,6 +11,7 @@ abstract final class ModelTags {
   static const reasoning = 'reasoning';
   static const longContext = 'long_context';
   static const embedding = 'embedding';
+  static const vision = 'vision';
 }
 
 /// 常见模型上下文长度表（token）：最长前缀优先；查不到返回 null（无 long_context
@@ -51,8 +52,9 @@ abstract final class ModelContextTable {
   }
 }
 
-/// 启发式标签规则（docs/02 A3）：modelId 含 reasoner|r1|thinking|o1|o3 →
-/// reasoning；含 embed → embedding；上下文 ≥64k 追加 long_context；默认 general。
+/// 启发式标签规则（docs/02 A3）：modelId 含 embed → embedding；含
+/// vl|vision|4v|omni → vision（视觉/OCR）；含 reasoner|r1|thinking|o1|o3 →
+/// reasoning；上下文 ≥64k 追加 long_context；其余默认 general。
 /// UI 需注明「自动识别，可手动修正」。
 abstract final class ModelTagger {
   static final RegExp _reasoning = RegExp(
@@ -60,11 +62,15 @@ abstract final class ModelTagger {
     caseSensitive: false,
   );
   static final RegExp _embedding = RegExp(r'embed', caseSensitive: false);
+  static final RegExp _vision = RegExp(r'vl|vision|4v|omni', caseSensitive: false);
 
   static List<String> tag(String modelId) {
     if (_embedding.hasMatch(modelId)) return const [ModelTags.embedding];
+    final isVision = _vision.hasMatch(modelId);
     return [
-      if (_reasoning.hasMatch(modelId))
+      if (isVision)
+        ModelTags.vision
+      else if (_reasoning.hasMatch(modelId))
         ModelTags.reasoning
       else
         ModelTags.general,

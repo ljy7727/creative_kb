@@ -5765,6 +5765,788 @@ class AppSettingsCompanion extends UpdateCompanion<AppSetting> {
   }
 }
 
+class $MemosTable extends Memos with TableInfo<$MemosTable, MemoRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MemosTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _contentMeta = const VerificationMeta(
+    'content',
+  );
+  @override
+  late final GeneratedColumn<String> content = GeneratedColumn<String>(
+    'content',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _imagesMeta = const VerificationMeta('images');
+  @override
+  late final GeneratedColumn<String> images = GeneratedColumn<String>(
+    'images',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    content,
+    images,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'memos';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MemoRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('content')) {
+      context.handle(
+        _contentMeta,
+        content.isAcceptableOrUnknown(data['content']!, _contentMeta),
+      );
+    }
+    if (data.containsKey('images')) {
+      context.handle(
+        _imagesMeta,
+        images.isAcceptableOrUnknown(data['images']!, _imagesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MemoRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MemoRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      content: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}content'],
+      )!,
+      images: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}images'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MemosTable createAlias(String alias) {
+    return $MemosTable(attachedDatabase, alias);
+  }
+}
+
+class MemoRow extends DataClass implements Insertable<MemoRow> {
+  final int id;
+  final String title;
+  final String content;
+  final String images;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const MemoRow({
+    required this.id,
+    required this.title,
+    required this.content,
+    required this.images,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['title'] = Variable<String>(title);
+    map['content'] = Variable<String>(content);
+    map['images'] = Variable<String>(images);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  MemosCompanion toCompanion(bool nullToAbsent) {
+    return MemosCompanion(
+      id: Value(id),
+      title: Value(title),
+      content: Value(content),
+      images: Value(images),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory MemoRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MemoRow(
+      id: serializer.fromJson<int>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      content: serializer.fromJson<String>(json['content']),
+      images: serializer.fromJson<String>(json['images']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'title': serializer.toJson<String>(title),
+      'content': serializer.toJson<String>(content),
+      'images': serializer.toJson<String>(images),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  MemoRow copyWith({
+    int? id,
+    String? title,
+    String? content,
+    String? images,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => MemoRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    content: content ?? this.content,
+    images: images ?? this.images,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  MemoRow copyWithCompanion(MemosCompanion data) {
+    return MemoRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      content: data.content.present ? data.content.value : this.content,
+      images: data.images.present ? data.images.value : this.images,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemoRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('content: $content, ')
+          ..write('images: $images, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, title, content, images, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MemoRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.content == this.content &&
+          other.images == this.images &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class MemosCompanion extends UpdateCompanion<MemoRow> {
+  final Value<int> id;
+  final Value<String> title;
+  final Value<String> content;
+  final Value<String> images;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const MemosCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.content = const Value.absent(),
+    this.images = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  MemosCompanion.insert({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.content = const Value.absent(),
+    this.images = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  static Insertable<MemoRow> custom({
+    Expression<int>? id,
+    Expression<String>? title,
+    Expression<String>? content,
+    Expression<String>? images,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (content != null) 'content': content,
+      if (images != null) 'images': images,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  MemosCompanion copyWith({
+    Value<int>? id,
+    Value<String>? title,
+    Value<String>? content,
+    Value<String>? images,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return MemosCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      content: content ?? this.content,
+      images: images ?? this.images,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (content.present) {
+      map['content'] = Variable<String>(content.value);
+    }
+    if (images.present) {
+      map['images'] = Variable<String>(images.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MemosCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('content: $content, ')
+          ..write('images: $images, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PasswordEntriesTable extends PasswordEntries
+    with TableInfo<$PasswordEntriesTable, PasswordEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PasswordEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fieldsEncMeta = const VerificationMeta(
+    'fieldsEnc',
+  );
+  @override
+  late final GeneratedColumn<String> fieldsEnc = GeneratedColumn<String>(
+    'fields_enc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteEncMeta = const VerificationMeta(
+    'noteEnc',
+  );
+  @override
+  late final GeneratedColumn<String> noteEnc = GeneratedColumn<String>(
+    'note_enc',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    fieldsEnc,
+    noteEnc,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'password_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PasswordEntryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('fields_enc')) {
+      context.handle(
+        _fieldsEncMeta,
+        fieldsEnc.isAcceptableOrUnknown(data['fields_enc']!, _fieldsEncMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fieldsEncMeta);
+    }
+    if (data.containsKey('note_enc')) {
+      context.handle(
+        _noteEncMeta,
+        noteEnc.isAcceptableOrUnknown(data['note_enc']!, _noteEncMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PasswordEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PasswordEntryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      fieldsEnc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fields_enc'],
+      )!,
+      noteEnc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note_enc'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PasswordEntriesTable createAlias(String alias) {
+    return $PasswordEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class PasswordEntryRow extends DataClass
+    implements Insertable<PasswordEntryRow> {
+  final int id;
+  final String name;
+  final String fieldsEnc;
+  final String? noteEnc;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const PasswordEntryRow({
+    required this.id,
+    required this.name,
+    required this.fieldsEnc,
+    this.noteEnc,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['fields_enc'] = Variable<String>(fieldsEnc);
+    if (!nullToAbsent || noteEnc != null) {
+      map['note_enc'] = Variable<String>(noteEnc);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  PasswordEntriesCompanion toCompanion(bool nullToAbsent) {
+    return PasswordEntriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      fieldsEnc: Value(fieldsEnc),
+      noteEnc: noteEnc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(noteEnc),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory PasswordEntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PasswordEntryRow(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      fieldsEnc: serializer.fromJson<String>(json['fieldsEnc']),
+      noteEnc: serializer.fromJson<String?>(json['noteEnc']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'fieldsEnc': serializer.toJson<String>(fieldsEnc),
+      'noteEnc': serializer.toJson<String?>(noteEnc),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  PasswordEntryRow copyWith({
+    int? id,
+    String? name,
+    String? fieldsEnc,
+    Value<String?> noteEnc = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => PasswordEntryRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    fieldsEnc: fieldsEnc ?? this.fieldsEnc,
+    noteEnc: noteEnc.present ? noteEnc.value : this.noteEnc,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  PasswordEntryRow copyWithCompanion(PasswordEntriesCompanion data) {
+    return PasswordEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      fieldsEnc: data.fieldsEnc.present ? data.fieldsEnc.value : this.fieldsEnc,
+      noteEnc: data.noteEnc.present ? data.noteEnc.value : this.noteEnc,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PasswordEntryRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('fieldsEnc: $fieldsEnc, ')
+          ..write('noteEnc: $noteEnc, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, fieldsEnc, noteEnc, createdAt, updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PasswordEntryRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.fieldsEnc == this.fieldsEnc &&
+          other.noteEnc == this.noteEnc &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class PasswordEntriesCompanion extends UpdateCompanion<PasswordEntryRow> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<String> fieldsEnc;
+  final Value<String?> noteEnc;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const PasswordEntriesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.fieldsEnc = const Value.absent(),
+    this.noteEnc = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  PasswordEntriesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    required String fieldsEnc,
+    this.noteEnc = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name),
+       fieldsEnc = Value(fieldsEnc);
+  static Insertable<PasswordEntryRow> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<String>? fieldsEnc,
+    Expression<String>? noteEnc,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (fieldsEnc != null) 'fields_enc': fieldsEnc,
+      if (noteEnc != null) 'note_enc': noteEnc,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  PasswordEntriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<String>? fieldsEnc,
+    Value<String?>? noteEnc,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return PasswordEntriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      fieldsEnc: fieldsEnc ?? this.fieldsEnc,
+      noteEnc: noteEnc ?? this.noteEnc,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (fieldsEnc.present) {
+      map['fields_enc'] = Variable<String>(fieldsEnc.value);
+    }
+    if (noteEnc.present) {
+      map['note_enc'] = Variable<String>(noteEnc.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PasswordEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('fieldsEnc: $fieldsEnc, ')
+          ..write('noteEnc: $noteEnc, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5783,6 +6565,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $UsageLogsTable usageLogs = $UsageLogsTable(this);
   late final $TaskQueueTable taskQueue = $TaskQueueTable(this);
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $MemosTable memos = $MemosTable(this);
+  late final $PasswordEntriesTable passwordEntries = $PasswordEntriesTable(
+    this,
+  );
   late final Index idxModelsProvider = Index(
     'idx_models_provider',
     'CREATE INDEX idx_models_provider ON models (provider_id)',
@@ -5830,6 +6616,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final AppSettingsDao appSettingsDao = AppSettingsDao(
     this as AppDatabase,
   );
+  late final MemosDao memosDao = MemosDao(this as AppDatabase);
+  late final PasswordEntriesDao passwordEntriesDao = PasswordEntriesDao(
+    this as AppDatabase,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5848,6 +6638,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     usageLogs,
     taskQueue,
     appSettings,
+    memos,
+    passwordEntries,
     idxModelsProvider,
     idxFragmentsCreated,
     idxKbEntriesCategory,
@@ -10056,6 +10848,447 @@ typedef $$AppSettingsTableProcessedTableManager =
       AppSetting,
       PrefetchHooks Function()
     >;
+typedef $$MemosTableCreateCompanionBuilder = MemosCompanion Function({
+  Value<int> id,
+  Value<String> title,
+  Value<String> content,
+  Value<String> images,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+typedef $$MemosTableUpdateCompanionBuilder = MemosCompanion Function({
+  Value<int> id,
+  Value<String> title,
+  Value<String> content,
+  Value<String> images,
+  Value<DateTime> createdAt,
+  Value<DateTime> updatedAt,
+});
+
+class $$MemosTableFilterComposer extends Composer<_$AppDatabase, $MemosTable> {
+  $$MemosTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get images => $composableBuilder(
+    column: $table.images,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MemosTableOrderingComposer
+    extends Composer<_$AppDatabase, $MemosTable> {
+  $$MemosTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get content => $composableBuilder(
+    column: $table.content,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get images => $composableBuilder(
+    column: $table.images,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MemosTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MemosTable> {
+  $$MemosTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get content =>
+      $composableBuilder(column: $table.content, builder: (column) => column);
+
+  GeneratedColumn<String> get images =>
+      $composableBuilder(column: $table.images, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$MemosTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MemosTable,
+          MemoRow,
+          $$MemosTableFilterComposer,
+          $$MemosTableOrderingComposer,
+          $$MemosTableAnnotationComposer,
+          $$MemosTableCreateCompanionBuilder,
+          $$MemosTableUpdateCompanionBuilder,
+          (MemoRow, BaseReferences<_$AppDatabase, $MemosTable, MemoRow>),
+          MemoRow,
+          PrefetchHooks Function()
+        > {
+  $$MemosTableTableManager(_$AppDatabase db, $MemosTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MemosTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MemosTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MemosTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<String> images = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => MemosCompanion(
+                id: id,
+                title: title,
+                content: content,
+                images: images,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> content = const Value.absent(),
+                Value<String> images = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => MemosCompanion.insert(
+                id: id,
+                title: title,
+                content: content,
+                images: images,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MemosTable, MemoRow>(table),
+                  BaseReferences<_$AppDatabase, $MemosTable, MemoRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MemosTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MemosTable,
+      MemoRow,
+      $$MemosTableFilterComposer,
+      $$MemosTableOrderingComposer,
+      $$MemosTableAnnotationComposer,
+      $$MemosTableCreateCompanionBuilder,
+      $$MemosTableUpdateCompanionBuilder,
+      (MemoRow, BaseReferences<_$AppDatabase, $MemosTable, MemoRow>),
+      MemoRow,
+      PrefetchHooks Function()
+    >;
+typedef $$PasswordEntriesTableCreateCompanionBuilder =
+    PasswordEntriesCompanion Function({
+      Value<int> id,
+      required String name,
+      required String fieldsEnc,
+      Value<String?> noteEnc,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$PasswordEntriesTableUpdateCompanionBuilder =
+    PasswordEntriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<String> fieldsEnc,
+      Value<String?> noteEnc,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+class $$PasswordEntriesTableFilterComposer
+    extends Composer<_$AppDatabase, $PasswordEntriesTable> {
+  $$PasswordEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fieldsEnc => $composableBuilder(
+    column: $table.fieldsEnc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get noteEnc => $composableBuilder(
+    column: $table.noteEnc,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PasswordEntriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PasswordEntriesTable> {
+  $$PasswordEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fieldsEnc => $composableBuilder(
+    column: $table.fieldsEnc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get noteEnc => $composableBuilder(
+    column: $table.noteEnc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PasswordEntriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PasswordEntriesTable> {
+  $$PasswordEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get fieldsEnc =>
+      $composableBuilder(column: $table.fieldsEnc, builder: (column) => column);
+
+  GeneratedColumn<String> get noteEnc =>
+      $composableBuilder(column: $table.noteEnc, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$PasswordEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PasswordEntriesTable,
+          PasswordEntryRow,
+          $$PasswordEntriesTableFilterComposer,
+          $$PasswordEntriesTableOrderingComposer,
+          $$PasswordEntriesTableAnnotationComposer,
+          $$PasswordEntriesTableCreateCompanionBuilder,
+          $$PasswordEntriesTableUpdateCompanionBuilder,
+          (
+            PasswordEntryRow,
+            BaseReferences<
+              _$AppDatabase,
+              $PasswordEntriesTable,
+              PasswordEntryRow
+            >,
+          ),
+          PasswordEntryRow,
+          PrefetchHooks Function()
+        > {
+  $$PasswordEntriesTableTableManager(
+    _$AppDatabase db,
+    $PasswordEntriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PasswordEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PasswordEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PasswordEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> fieldsEnc = const Value.absent(),
+                Value<String?> noteEnc = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PasswordEntriesCompanion(
+                id: id,
+                name: name,
+                fieldsEnc: fieldsEnc,
+                noteEnc: noteEnc,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                required String fieldsEnc,
+                Value<String?> noteEnc = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => PasswordEntriesCompanion.insert(
+                id: id,
+                name: name,
+                fieldsEnc: fieldsEnc,
+                noteEnc: noteEnc,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PasswordEntriesTable, PasswordEntryRow>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $PasswordEntriesTable,
+                    PasswordEntryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PasswordEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PasswordEntriesTable,
+      PasswordEntryRow,
+      $$PasswordEntriesTableFilterComposer,
+      $$PasswordEntriesTableOrderingComposer,
+      $$PasswordEntriesTableAnnotationComposer,
+      $$PasswordEntriesTableCreateCompanionBuilder,
+      $$PasswordEntriesTableUpdateCompanionBuilder,
+      (
+        PasswordEntryRow,
+        BaseReferences<_$AppDatabase, $PasswordEntriesTable, PasswordEntryRow>,
+      ),
+      PasswordEntryRow,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10086,6 +11319,10 @@ class $AppDatabaseManager {
       $$TaskQueueTableTableManager(_db, _db.taskQueue);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$MemosTableTableManager get memos =>
+      $$MemosTableTableManager(_db, _db.memos);
+  $$PasswordEntriesTableTableManager get passwordEntries =>
+      $$PasswordEntriesTableTableManager(_db, _db.passwordEntries);
 }
 
 mixin _$ProvidersDaoMixin on DatabaseAccessor<AppDatabase> {
@@ -10261,4 +11498,31 @@ class AppSettingsDaoManager {
   AppSettingsDaoManager(this._db);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db.attachedDatabase, _db.appSettings);
+}
+
+mixin _$MemosDaoMixin on DatabaseAccessor<AppDatabase> {
+  $MemosTable get memos => attachedDatabase.memos;
+  MemosDaoManager get managers => MemosDaoManager(this);
+}
+
+class MemosDaoManager {
+  final _$MemosDaoMixin _db;
+  MemosDaoManager(this._db);
+  $$MemosTableTableManager get memos =>
+      $$MemosTableTableManager(_db.attachedDatabase, _db.memos);
+}
+
+mixin _$PasswordEntriesDaoMixin on DatabaseAccessor<AppDatabase> {
+  $PasswordEntriesTable get passwordEntries => attachedDatabase.passwordEntries;
+  PasswordEntriesDaoManager get managers => PasswordEntriesDaoManager(this);
+}
+
+class PasswordEntriesDaoManager {
+  final _$PasswordEntriesDaoMixin _db;
+  PasswordEntriesDaoManager(this._db);
+  $$PasswordEntriesTableTableManager get passwordEntries =>
+      $$PasswordEntriesTableTableManager(
+        _db.attachedDatabase,
+        _db.passwordEntries,
+      );
 }

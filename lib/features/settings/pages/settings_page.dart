@@ -357,6 +357,7 @@ class _ModelTileState extends ConsumerState<_ModelTile> {
     'reasoning': '推理',
     'long_context': '长上下文',
     'embedding': '向量化',
+    'vision': '视觉',
   };
 
   ModelRow get _model => widget.model;

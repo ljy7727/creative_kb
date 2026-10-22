@@ -5,7 +5,8 @@ Flutter 单代码库，支持 **Windows 桌面** 与 **Android**。数据 100% �
 
 ## 功能（v1）
 
-- **灵感碎片**：快捷录入（Ctrl+Enter 提交）、AI 优化（纠错/提炼/多主题拆分/打标签）、
+- **灵感碎片**：快捷录入（Ctrl+Enter 提交）、**图片 OCR**（选图后视觉模型识别文字填入）、
+  AI 优化（纠错/提炼/多主题拆分/打标签）、
   原始与 AI 双版本对比、转提示词草稿 / 转资料条目、换强度重新优化
 - **提示词库**：小说/绘画/Agent 三类模板，从碎片生成 3 风格版本对比保存、
   定向优化（压缩/扩写/适配模型/风格转换）、变量提取与填充复制、版本历史与一键回滚
@@ -13,6 +14,9 @@ Flutter 单代码库，支持 **Windows 桌面** 与 **Android**。数据 100% �
   **AI 搜集**（DeepSeek Search/Fetch 联网收集资料 → 自动结构化 → 预览入库）、
   内置 4 套分类 Schema（通用/历史官职/仙侠宝物/宗门势力），用户可编辑/新增（JSON 热加载）、
   分类树、条目双向关联跳转、FTS5 关键词 + 语义混合检索（未配置嵌入模型自动降级并提示）、极速入库模式
+- **备忘录**：文本 + 图片混排保存（图片复制到本地数据目录），标题/内容搜索
+- **密码本**：自定义字段（账号/密码/验证号…左名称右值）、双击复制任意字段值、
+  字段与备注 AES-GCM 加密存储（主密钥在系统安全存储）
 - **Agent 中枢**：多厂商 API Key（DeepSeek/通义千问/豆包/智谱/自定义；Key 只写系统安全存储，
   数据库仅存引用名；输入框支持粘贴）、一键拉取模型并自动打标签（可手动修正）、4 档思考强度、
   任务队列（重试/超时/额度拦截）、全链路 token 记账与单次/单日额度防护、数据导出导入（zip）
@@ -25,7 +29,7 @@ Flutter 单代码库，支持 **Windows 桌面** 与 **Android**。数据 100% �
 ## 技术栈
 
 Flutter（Material 3 中文）· flutter_riverpod · drift（SQLite + FTS5 trigram）· dio（OpenAI 兼容 SSE）
-· flutter_secure_storage · flutter_markdown · archive（备份 zip）· open_filex（APK 安装）· window_manager（Windows 默认 1200×800，最小 900×600）
+· flutter_secure_storage · flutter_markdown · archive（备份 zip）· open_filex（APK 安装）· cryptography（AES-GCM 密码本）· window_manager（Windows 默认 1200×800，最小 900×600）
 
 ## 目录结构（关键部分）
 

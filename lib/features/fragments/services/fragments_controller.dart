@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/misc.dart';
 import '../../../core/db/app_setting_keys.dart';
 import '../../../core/db/database.dart';
 import '../../../core/db/database_provider.dart';
+import '../../../core/llm/vision_ocr.dart';
 import '../../../core/tasks/task_runner_provider.dart';
 import '../models/fragment_models.dart';
 import 'fragment_optimize_task.dart';
@@ -254,3 +255,8 @@ class FragmentsController extends Notifier<FragmentsViewState> {
     }
   }
 }
+
+/// 图片 OCR 服务（调用视觉模型识别图片文字，见 core/llm/vision_ocr.dart）。
+final visionOcrServiceProvider = Provider<VisionOcrService>(
+  (ref) => VisionOcrService(ref.watch(appDatabaseProvider)),
+);

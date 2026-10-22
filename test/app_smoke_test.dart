@@ -10,7 +10,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('桌面宽度（≥900）渲染带标签的 NavigationRail，五入口齐全', (tester) async {
+  testWidgets('桌面宽度（≥900）渲染带标签的 NavigationRail，七入口齐全', (tester) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -21,9 +21,9 @@ void main() {
     expect(find.byType(NavigationBar), findsNothing);
     final rail = tester.widget<NavigationRail>(find.byType(NavigationRail));
     expect(rail.labelType, NavigationRailLabelType.all);
-    expect(rail.destinations, hasLength(5));
-    // 占位页标题与 Rail 标签同文案，至少出现一次即可。
-    for (final label in ['灵感', '提示词', '资料库', '用量', '设置']) {
+    expect(rail.destinations, hasLength(7));
+    // 页面标题与 Rail 标签同文案，至少出现一次即可。
+    for (final label in ['灵感', '提示词', '资料库', '备忘录', '密码本', '用量', '设置']) {
       expect(find.text(label), findsWidgets);
     }
   });

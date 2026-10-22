@@ -23,7 +23,9 @@ part 'daos/intensity_presets_dao.dart';
 part 'daos/kb_categories_dao.dart';
 part 'daos/kb_entries_dao.dart';
 part 'daos/kb_relations_dao.dart';
+part 'daos/memos_dao.dart';
 part 'daos/models_dao.dart';
+part 'daos/password_entries_dao.dart';
 part 'daos/prompt_versions_dao.dart';
 part 'daos/prompts_dao.dart';
 part 'daos/providers_dao.dart';
@@ -46,6 +48,8 @@ part 'daos/usage_log_dao.dart';
     UsageLogs,
     TaskQueue,
     AppSettings,
+    Memos,
+    PasswordEntries,
   ],
   daos: [
     ProvidersDao,
@@ -61,6 +65,8 @@ part 'daos/usage_log_dao.dart';
     UsageLogDao,
     TaskQueueDao,
     AppSettingsDao,
+    MemosDao,
+    PasswordEntriesDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -82,7 +88,7 @@ class AppDatabase extends _$AppDatabase {
       );
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -91,8 +97,11 @@ class AppDatabase extends _$AppDatabase {
       await _createFtsObjects();
     },
     onUpgrade: (m, from, to) async {
-      // v1 无历史版本。后续版本在此按 from→to 增量迁移；
-      // 涉及 kb_entries 结构变更时需重建 kb_fts（见 rebuildFts）。
+      // v1 → v2：新增备忘录与密码本两张表（只增不改，无需重建 kb_fts）。
+      if (from < 2) {
+        await m.createTable(memos);
+        await m.createTable(passwordEntries);
+      }
     },
   );
 

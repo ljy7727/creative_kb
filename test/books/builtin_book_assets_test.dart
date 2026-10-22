@@ -30,12 +30,12 @@ void main() {
 
   test('Vibe Coding 教程：章节数量与来源信息', () async {
     final raw = await rootBundle.loadString(
-      'assets/books/vibe-vibe/book.json',
+      'assets/books/liyupi-ai-guide/book.json',
     );
     final data = jsonDecode(raw) as Map<String, dynamic>;
     expect(data['title'], contains('Vibe Coding'));
-    expect(data['author'], 'Datawhale');
-    expect(data['sourceUrl'], contains('datawhalechina/vibe-vibe'));
+    expect(data['author'], '程序员鱼皮');
+    expect(data['sourceUrl'], contains('liyupi/ai-guide'));
     expect((data['chapters'] as List).length, greaterThanOrEqualTo(20));
   });
 }

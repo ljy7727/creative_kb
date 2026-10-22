@@ -12,14 +12,23 @@ class DefaultBookSeeder {
   /// 随应用内置的书籍资源（book.json：builtinKey/title/author/kind/chapters）。
   static const assetPaths = <String>[
     'assets/books/gaoxingjiabi/book.json',
-    'assets/books/vibe-vibe/book.json',
+    'assets/books/liyupi-ai-guide/book.json',
   ];
+
+  /// 已废弃的内置书（v0.5.0 误导入的 Datawhale 课程）：启动时清理一次。
+  static const obsoleteKeys = <String>['github-datawhalechina-vibe-vibe'];
 
   /// 逐本播种；返回本次实际写入的书籍数。
   static Future<int> run(AppDatabase db) async {
     var seeded = 0;
     for (final asset in assetPaths) {
       if (await _seedOne(db, asset)) seeded += 1;
+    }
+    for (final key in obsoleteKeys) {
+      final row = await db.booksDao.byBuiltinKey(key);
+      if (row != null) {
+        await db.booksDao.deleteCascade(row.id);
+      }
     }
     return seeded;
   }

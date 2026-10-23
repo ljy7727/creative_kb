@@ -124,7 +124,10 @@ class _AppShellState extends ConsumerState<AppShell> {
 
         if (width < 700) {
           return Scaffold(
-            body: IndexedStack(index: _index, children: pages),
+            body: SafeArea(
+              bottom: false,
+              child: IndexedStack(index: _index, children: pages),
+            ),
             bottomNavigationBar: _BottomNavBar(
               key: const ValueKey('bottom-nav'),
               tabs: _tabs,
@@ -135,34 +138,37 @@ class _AppShellState extends ConsumerState<AppShell> {
         }
 
         return Scaffold(
-          body: Row(
-            children: [
-              NavigationRail(
-                selectedIndex: _index,
-                onDestinationSelected: _select,
-                // ≥900 图标+标签；700–899 折叠为纯图标。
-                labelType: width >= 900
-                    ? NavigationRailLabelType.all
-                    : NavigationRailLabelType.none,
-                minWidth: 72,
-                leading: const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Icon(Icons.auto_stories, size: 28),
+          body: SafeArea(
+            bottom: false,
+            child: Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _index,
+                  onDestinationSelected: _select,
+                  // ≥900 图标+标签；700–899 折叠为纯图标。
+                  labelType: width >= 900
+                      ? NavigationRailLabelType.all
+                      : NavigationRailLabelType.none,
+                  minWidth: 72,
+                  leading: const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: Icon(Icons.auto_stories, size: 28),
+                  ),
+                  destinations: [
+                    for (final tab in _tabs)
+                      NavigationRailDestination(
+                        icon: Icon(tab.icon),
+                        selectedIcon: Icon(tab.selectedIcon),
+                        label: Text(tab.title),
+                      ),
+                  ],
                 ),
-                destinations: [
-                  for (final tab in _tabs)
-                    NavigationRailDestination(
-                      icon: Icon(tab.icon),
-                      selectedIcon: Icon(tab.selectedIcon),
-                      label: Text(tab.title),
-                    ),
-                ],
-              ),
-              const VerticalDivider(width: 1, thickness: 1),
-              Expanded(
-                child: IndexedStack(index: _index, children: pages),
-              ),
-            ],
+                const VerticalDivider(width: 1, thickness: 1),
+                Expanded(
+                  child: IndexedStack(index: _index, children: pages),
+                ),
+              ],
+            ),
           ),
         );
       },

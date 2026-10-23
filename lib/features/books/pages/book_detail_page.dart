@@ -260,6 +260,8 @@ class _BookDetailPageState extends ConsumerState<BookDetailPage> {
   String _preview(String content) {
     final text = content
         .replaceAll(RegExp(r'!\[[^\]]*\]\([^)]*\)'), '[图片]')
+        .replaceAll(RegExp(r'\[([^\]]*)\]\([^)]*\)'), r'$1')
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
         .replaceAll(RegExp(r'[#*>`\-]+'), ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();

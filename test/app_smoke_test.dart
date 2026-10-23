@@ -39,14 +39,15 @@ void main() {
     expect(rail.labelType, NavigationRailLabelType.none);
   });
 
-  testWidgets('窄屏（<700）走底部 NavigationBar，可切换到设置占位页', (tester) async {
+  testWidgets('窄屏（<700）走可横向滑动的自定义底栏，可切换到设置页', (tester) async {
     tester.view.physicalSize = const Size(500, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
 
     await pumpApp(tester);
 
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byKey(const ValueKey('bottom-nav')), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
     await tester.tap(find.text('设置'));
     await tester.pumpAndSettle();
     // 占位页与底栏都含「设置」文案。

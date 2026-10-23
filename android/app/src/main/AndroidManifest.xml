@@ -1,4 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 网络访问：release 包也必须显式声明（debug/profile 清单里的声明不会进入正式包）。 -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <!-- 应用内下载新版本 APK 并拉起系统安装器（更新检查「下载并安装」）。 -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
     <application

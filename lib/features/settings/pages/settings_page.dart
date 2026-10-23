@@ -12,6 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/db/app_setting_keys.dart';
 import '../../../core/db/database.dart';
+import '../../../core/llm/llm_client.dart' show LlmException;
 import '../../../core/llm/providers.dart';
 import '../../../core/update/update_checker.dart';
 import '../../../core/update/update_dialog.dart';
@@ -220,7 +221,11 @@ class _ProviderTileState extends ConsumerState<_ProviderTile> {
           );
       if (mounted) _toast(context, '已拉取 ${count.length} 个模型并自动打标签');
     } catch (e) {
-      if (mounted) _toast(context, '拉取失败：$e');
+      if (mounted) {
+        // 类型化 LLM 异常展示中文 message，不再暴露 LlmXxxException 类名。
+        final detail = e is LlmException ? e.message : '$e';
+        _toast(context, '拉取失败：$detail');
+      }
     } finally {
       if (mounted) setState(() => _pulling = false);
     }

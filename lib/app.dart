@@ -10,30 +10,22 @@ import 'features/prompts/pages/prompt_detail_page.dart';
 import 'features/prompts/pages/prompt_generate_page.dart';
 import 'features/prompts/pages/prompt_optimize_page.dart';
 import 'features/shell/app_shell.dart';
+import 'shared/theme.dart';
 
 /// 应用根：Material 3 主题（深青色系 seed）+ 中文本地化 + 响应式导航壳。
 class CreativeKbApp extends StatelessWidget {
   const CreativeKbApp({super.key});
 
-  /// 深青色系种子色（docs/04 T1）。
-  static const seedColor = Color(0xFF00695C);
+  /// 品牌种子色（v0.7 视觉系统见 shared/theme.dart）。
+  static const seedColor = AppTheme.seed;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: '创作知识库',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: seedColor),
-        useMaterial3: true,
-      ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: seedColor,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
       themeMode: ThemeMode.system,
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

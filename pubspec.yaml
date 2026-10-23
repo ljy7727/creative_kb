@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 0.6.0
+version: 0.7.0
 
 environment:
   sdk: ^3.13.5
@@ -80,9 +80,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # 内置书籍（公众号导读 + 鱼皮 Vibe Coding 开源教程离线版）
+  # 内置书籍（高性价比人生指南 + 鱼皮 Vibe Coding 开源教程离线版）
   assets:
-    - assets/books/gaoxingjiabi/
+    - assets/books/how-to-live-better/
     - assets/books/liyupi-ai-guide/
 
   # To add assets to your application, add an assets section, like this:

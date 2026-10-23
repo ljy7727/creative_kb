@@ -125,17 +125,11 @@ class _AppShellState extends ConsumerState<AppShell> {
         if (width < 700) {
           return Scaffold(
             body: IndexedStack(index: _index, children: pages),
-            bottomNavigationBar: NavigationBar(
+            bottomNavigationBar: _BottomNavBar(
+              key: const ValueKey('bottom-nav'),
+              tabs: _tabs,
               selectedIndex: _index,
-              onDestinationSelected: _select,
-              destinations: [
-                for (final tab in _tabs)
-                  NavigationDestination(
-                    icon: Icon(tab.icon),
-                    selectedIcon: Icon(tab.selectedIcon),
-                    label: tab.title,
-                  ),
-              ],
+              onSelected: _select,
             ),
           );
         }
@@ -172,6 +166,115 @@ class _AppShellState extends ConsumerState<AppShell> {
           ),
         );
       },
+    );
+  }
+}
+
+/// 窄屏底部导航（v0.7）：固定宽度入口 + 单行标签，整体可横向滑动，
+/// 不再出现三字标签换行导致的图标错位。
+class _BottomNavBar extends StatelessWidget {
+  const _BottomNavBar({
+    super.key,
+    required this.tabs,
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  final List<ShellTab> tabs;
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerLowest,
+        border: Border(top: BorderSide(color: scheme.outlineVariant)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 62,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Row(
+              children: [
+                for (var i = 0; i < tabs.length; i++)
+                  _BottomNavItem(
+                    tab: tabs[i],
+                    selected: i == selectedIndex,
+                    onTap: () => onSelected(i),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BottomNavItem extends StatelessWidget {
+  const _BottomNavItem({
+    required this.tab,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final ShellTab tab;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: 76,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 160),
+              curve: Curves.easeOut,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 14,
+                vertical: 3,
+              ),
+              decoration: BoxDecoration(
+                color: selected
+                    ? scheme.secondaryContainer
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Icon(
+                selected ? tab.selectedIcon : tab.icon,
+                size: 22,
+                color: selected
+                    ? scheme.onSecondaryContainer
+                    : scheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              tab.title,
+              maxLines: 1,
+              softWrap: false,
+              overflow: TextOverflow.clip,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.2,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                color: selected ? scheme.onSurface : scheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

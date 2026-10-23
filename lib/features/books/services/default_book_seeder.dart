@@ -11,12 +11,15 @@ import '../../../core/db/database.dart';
 class DefaultBookSeeder {
   /// 随应用内置的书籍资源（book.json：builtinKey/title/author/kind/chapters）。
   static const assetPaths = <String>[
-    'assets/books/gaoxingjiabi/book.json',
+    'assets/books/how-to-live-better/book.json',
     'assets/books/liyupi-ai-guide/book.json',
   ];
 
-  /// 已废弃的内置书（v0.5.0 误导入的 Datawhale 课程）：启动时清理一次。
-  static const obsoleteKeys = <String>['github-datawhalechina-vibe-vibe'];
+  /// 已废弃的内置书：v0.5.0 误导入的 Datawhale 课程、v0.4 的公众号截图版导读。
+  static const obsoleteKeys = <String>[
+    'github-datawhalechina-vibe-vibe',
+    'wechat-Z5Bu261a3HcVGQXgbg1CdQ',
+  ];
 
   /// 逐本播种；返回本次实际写入的书籍数。
   static Future<int> run(AppDatabase db) async {

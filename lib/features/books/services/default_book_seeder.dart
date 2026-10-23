@@ -21,11 +21,26 @@ class DefaultBookSeeder {
     'wechat-Z5Bu261a3HcVGQXgbg1CdQ',
   ];
 
+  /// 已播种标记（app_settings，逗号分隔 asset 路径）：
+  /// 避免每次启动都加载并解析数 MB 的书籍资源；也尊重用户删除（不复活）。
+  static const _markerKey = 'builtin_books_seeded';
+
   /// 逐本播种；返回本次实际写入的书籍数。
   static Future<int> run(AppDatabase db) async {
+    final marker = await db.appSettingsDao.get(_markerKey) ?? '';
+    final done = marker.split(',').where((s) => s.isNotEmpty).toSet();
     var seeded = 0;
+    final newDone = <String>{};
     for (final asset in assetPaths) {
+      if (done.contains(asset)) continue;
       if (await _seedOne(db, asset)) seeded += 1;
+      newDone.add(asset);
+    }
+    if (newDone.isNotEmpty) {
+      await db.appSettingsDao.set(
+        _markerKey,
+        {...done, ...newDone}.join(','),
+      );
     }
     for (final key in obsoleteKeys) {
       final row = await db.booksDao.byBuiltinKey(key);

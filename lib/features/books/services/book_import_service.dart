@@ -90,7 +90,7 @@ class BookImportService {
   Future<ImportedBook> importUrl(String rawUrl) async {
     var url = rawUrl.trim();
     var redirects = 0;
-    Response<List<int>>? response;
+    Response<List<int>> response;
     while (true) {
       await _validateUrl(url);
       try {
@@ -109,20 +109,24 @@ class BookImportService {
           ),
         );
       } on DioException catch (e) {
-        final status = e.response?.statusCode;
-        if (status != null && status >= 300 && status < 400) {
-          final location = e.response?.headers.value('location');
-          if (location == null || location.isEmpty) {
-            throw const BookImportException('重定向缺少目标地址');
-          }
-          redirects += 1;
-          if (redirects > _maxRedirects) {
-            throw const BookImportException('重定向次数过多');
-          }
-          url = Uri.parse(url).resolve(location).toString();
-          continue;
-        }
         throw BookImportException('抓取失败：${e.message ?? '网络错误'}');
+      }
+      // validateStatus 允许 <400：3xx 会作为正常响应返回，须在此处跟随。
+      final status = response.statusCode ?? 0;
+      if (status >= 300 && status < 400) {
+        final location = response.headers.value('location');
+        if (location == null || location.isEmpty) {
+          throw const BookImportException('重定向缺少目标地址');
+        }
+        redirects += 1;
+        if (redirects > _maxRedirects) {
+          throw const BookImportException('重定向次数过多');
+        }
+        url = Uri.parse(url).resolve(location).toString();
+        continue;
+      }
+      if (status >= 400) {
+        throw BookImportException('抓取失败：HTTP $status');
       }
       break;
     }

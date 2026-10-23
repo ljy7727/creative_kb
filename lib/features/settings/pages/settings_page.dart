@@ -1221,47 +1221,8 @@ class _DataGroupState extends ConsumerState<_DataGroup> {
 /// 向量化模型分组（docs/02 D7）：语义检索的嵌入模型选择；不选择时资料库
 /// 检索自动降级为关键词（FTS）。候选 = 已配 Key 厂商下启用中且带
 ///「向量化」标签的模型（kb.embedding_model 设置，见 kb_embedding_config.dart）。
-class _EmbeddingGroup extends ConsumerStatefulWidget {
+class _EmbeddingGroup extends ConsumerWidget {
   const _EmbeddingGroup();
-
-  @override
-  ConsumerState<_EmbeddingGroup> createState() => _EmbeddingGroupState();
-}
-
-class _EmbeddingGroupState extends ConsumerState<_EmbeddingGroup> {
-  KbEmbeddingConfig? _current;
-  List<(ProviderRow, ModelRow)> _candidates = const [];
-  bool _loading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _reload();
-  }
-
-  Future<void> _reload() async {
-    final db = ref.read(settingsDbProvider);
-    if (db == null) {
-      if (mounted) setState(() => _loading = false);
-      return;
-    }
-    final current = await KbEmbeddingConfigResolver.resolve(db);
-    final providers = await db.providersDao.getAll();
-    final candidates = <(ProviderRow, ModelRow)>[];
-    for (final provider in providers) {
-      if ((provider.keyRef ?? '').isEmpty) continue;
-      final models = await db.modelsDao.activeByProvider(provider.id);
-      for (final model in models) {
-        if (_hasEmbeddingTag(model.tags)) candidates.add((provider, model));
-      }
-    }
-    if (!mounted) return;
-    setState(() {
-      _current = current;
-      _candidates = candidates;
-      _loading = false;
-    });
-  }
 
   static bool _hasEmbeddingTag(String tagsJson) {
     try {
@@ -1273,56 +1234,70 @@ class _EmbeddingGroupState extends ConsumerState<_EmbeddingGroup> {
     return false;
   }
 
-  int get _groupValue {
-    if (_current == null) return -1;
-    for (var i = 0; i < _candidates.length; i++) {
-      final (provider, model) = _candidates[i];
-      if (provider.id == _current!.providerId &&
-          model.modelId == _current!.model) {
-        return i;
-      }
-    }
-    return -1;
-  }
-
-  Future<void> _select(int index) async {
+  Future<void> _select(
+    WidgetRef ref,
+    int index,
+    List<(ProviderRow, ModelRow)> candidates,
+  ) async {
     final db = ref.read(settingsDbProvider);
     if (db == null) return;
     if (index < 0) {
       await KbEmbeddingConfigResolver.clear(db);
     } else {
-      final (provider, model) = _candidates[index];
+      final (provider, model) = candidates[index];
       await KbEmbeddingConfigResolver.save(
         db,
         providerId: provider.id,
         model: model.modelId,
       );
     }
-    // kb 模块 FutureProvider 有缓存，失效后检索页/详情页立即按新配置工作。
+    // kb 模块 FutureProvider 有缓存，失效后检索页/详情页立即按新配置工作；
+    // 本组件 watch embeddingConfigProvider，保存后勾选自动更新。
     ref.invalidate(embeddingConfigProvider);
-    await _reload();
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 直接 watch 厂商/模型流：拉取模型、改标签、启停、删厂商后无需重进页面。
+    final providers =
+        ref.watch(providersStreamProvider).value ?? const <ProviderRow>[];
+    final candidates = <(ProviderRow, ModelRow)>[];
+    for (final provider in providers) {
+      if ((provider.keyRef ?? '').isEmpty) continue;
+      final models =
+          ref.watch(modelsByProviderProvider(provider.id)).value ??
+          const <ModelRow>[];
+      for (final model in models) {
+        if (model.isActive && _hasEmbeddingTag(model.tags)) {
+          candidates.add((provider, model));
+        }
+      }
+    }
+    final current = ref.watch(embeddingConfigProvider).value;
+    var groupValue = -1;
+    if (current != null) {
+      for (var i = 0; i < candidates.length; i++) {
+        final (provider, model) = candidates[i];
+        if (provider.id == current.providerId &&
+            model.modelId == current.model) {
+          groupValue = i;
+          break;
+        }
+      }
+    }
     return _Section(
       title: '向量化模型',
       subtitle: '用于资料库语义检索；不选择时自动降级为关键词检索',
       children: [
-        if (_loading)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (_candidates.isEmpty)
+        if (candidates.isEmpty)
           const Text(
             '暂无可用的向量化模型：先在「厂商与模型」中添加 API Key 并拉取模型，'
             '标签为「向量化」的模型会出现在这里（通义/智谱等厂商提供）。',
           )
         else
           RadioGroup<int>(
-            groupValue: _groupValue,
-            onChanged: (value) => _select(value ?? -1),
+            groupValue: groupValue,
+            onChanged: (value) => _select(ref, value ?? -1, candidates),
             child: Column(
               children: [
                 const RadioListTile<int>(
@@ -1331,11 +1306,11 @@ class _EmbeddingGroupState extends ConsumerState<_EmbeddingGroup> {
                   subtitle: Text('仅关键词检索'),
                   contentPadding: EdgeInsets.zero,
                 ),
-                for (var i = 0; i < _candidates.length; i++)
+                for (var i = 0; i < candidates.length; i++)
                   RadioListTile<int>(
                     value: i,
                     title: Text(
-                      '${_candidates[i].$1.name} / ${_candidates[i].$2.modelId}',
+                      '${candidates[i].$1.name} / ${candidates[i].$2.modelId}',
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),

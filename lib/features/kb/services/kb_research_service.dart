@@ -73,7 +73,7 @@ class KbResearchService {
   Future<KbResearchOutcome> run({
     required String topic,
     required IntensityParams intensity,
-    bool fetchPages = true,
+    bool fetchPages = false,
     ResearchStageCallback? onStage,
   }) async {
     final trimmedTopic = topic.trim();
@@ -236,9 +236,14 @@ class KbResearchService {
     }
 
     // —— 阶段 4：汇总素材并交给 KbIngestTask 结构化
+    // maxTokens 下限 8192：素材量大，2048/4096 档位会把 JSON 输出截断成非法格式。
     onStage?.call('结构化整理（${collected.length} 条资料）…');
     final material = _buildMaterial(trimmedTopic, collected, fetched);
-    final outcome = await ingest.run(rawText: material, intensity: intensity);
+    final outcome = await ingest.run(
+      rawText: material,
+      intensity: intensity,
+      minMaxTokens: 8192,
+    );
     return KbResearchOutcome(
       ingest: outcome,
       error: outcome.error,
@@ -309,8 +314,16 @@ class KbResearchService {
     List<({String title, String url, String content})> fetched,
   ) {
     final buffer = StringBuffer()
-      ..writeln('以下是从互联网收集的创作资料（主题：$topic）。')
-      ..writeln('整理时请保留每条的来源 URL，写入对应条目正文的「来源」部分。')
+      ..writeln('以下是用联网搜索收集的创作资料（主题：$topic）。')
+      ..writeln()
+      ..writeln('整理要求：')
+      ..writeln('1. 资料围绕同一主题时整理为 1 条综合条目（如「李白的一生」→ 条目「李白」）；'
+          '只有资料明显覆盖多个互不相关的主题时才拆分多个条目。')
+      ..writeln('2. 人物生平、历史事件、事物演进类主题：contentMd 必须按时间顺序组织，'
+          '用「## 时期/年份」小节或时间轴列表呈现（如出生早年到晚年）。')
+      ..writeln('3. cleaned 只写素材要点汇总（800 字以内），不要逐字保留全部原文，'
+          '避免输出过长导致 JSON 被截断。')
+      ..writeln('4. 把用到的来源 URL 写入条目 contentMd 末尾的「## 来源」小节（一行一条）。')
       ..writeln();
     for (final item in items) {
       if (buffer.length >= _materialCap) break;

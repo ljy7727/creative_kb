@@ -20,7 +20,7 @@ class KbResearchPage extends ConsumerStatefulWidget {
 class _KbResearchPageState extends ConsumerState<KbResearchPage> {
   final _topicController = TextEditingController();
   String? _intensityCode;
-  bool _fetchPages = true;
+  bool _fetchPages = false;
   bool _running = false;
   String _stage = '';
   String? _error;
@@ -189,7 +189,7 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                   title: const Text('抓取网页正文'),
-                  subtitle: const Text('更完整，但更慢'),
+                  subtitle: const Text('搜索摘要通常够用；需要全文再开'),
                   value: _fetchPages,
                   onChanged: _running
                       ? null
@@ -257,7 +257,7 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
   }
 }
 
-/// 搜索完成但结构化失败时的资料摘要（便于换主题重试或改为手动粘贴）。
+/// 搜索完成但结构化失败时的资料摘要（完整列出，便于换主题重试或手动粘贴）。
 class _SearchSummary extends StatelessWidget {
   const _SearchSummary({required this.outcome});
 
@@ -273,18 +273,45 @@ class _SearchSummary extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '已收集 ${outcome.items.length} 条资料（检索词 ${outcome.queries.length} 个）',
+              '已收集 ${outcome.items.length} 条资料'
+              '（检索词 ${outcome.queries.length} 个，抓取正文 ${outcome.fetchedPages} 页）',
               style: theme.textTheme.titleSmall,
             ),
-            const SizedBox(height: 8),
-            for (final item in outcome.items.take(8))
+            if (outcome.queries.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                '检索词：${outcome.queries.join('、')}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+            const Divider(height: 16),
+            // 全部条目逐行展示；页面本身是 ListView，可滚动查看全部。
+            for (final item in outcome.items)
               Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  '· ${item.title.isEmpty ? item.url : item.title}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall,
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title.isEmpty ? '（无标题）' : item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                    Text(
+                      [
+                        if (item.siteName.isNotEmpty) item.siteName,
+                        item.url,
+                      ].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],

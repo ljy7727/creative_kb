@@ -78,6 +78,7 @@ class KbIngestTask {
   Future<KbIngestOutcome> run({
     required String rawText,
     required IntensityParams intensity,
+    int? minMaxTokens,
   }) async {
     // —— 额度防护：日上限（docs/01 第三节；拦截也要留下用量记录供看板可见）。
     final settings = await _db.appSettingsDao.getAll();
@@ -103,8 +104,12 @@ class KbIngestTask {
         );
       }
     }
-    // 单次上限以 max_tokens 封顶。
+    // 单次上限以 max_tokens 封顶；minMaxTokens 抬底（AI 搜集素材量大，
+    // 低档位的 2048/4096 会把 JSON 输出截断成非法格式）。
     var maxTokens = intensity.maxTokens;
+    if (minMaxTokens != null && (maxTokens == null || maxTokens < minMaxTokens)) {
+      maxTokens = minMaxTokens;
+    }
     final singleMax = int.tryParse(
       settings[AppSettingKeys.singleTaskMaxTokens] ?? '',
     );
@@ -190,10 +195,13 @@ class KbIngestTask {
         lastError = e.message;
         if (attempt < maxAttempts) {
           // 校验错误拼回消息重试（docs/01 第五节）。
+          final truncated = _looksTruncated(completion.text);
           user =
               '$baseUser\n\n'
               '你上一次的输出未通过校验，错误：\n'
               '${e.issues.map((s) => '- $s').join('\n')}\n'
+              '${truncated ? '你的输出疑似被长度限制截断了。请大幅压缩：cleaned 只写要点汇总（不要保留全文），'
+                  'contentMd 只保留关键信息，然后重新输出。\n' : ''}'
               '请修正后重新输出，仍然只输出 JSON 对象。';
         }
       }
@@ -214,12 +222,25 @@ class KbIngestTask {
       status: UsageStatus.error,
       error: lastError,
     );
+    var userError = lastError;
+    if (userError != null && userError.contains('不是合法 JSON')) {
+      userError = '$userError（输出可能过长被截断：可到「设置 → 用量」调大单次上限，'
+          '或换更简短的资料重试）';
+    }
     return KbIngestOutcome(
-      error: lastError,
+      error: userError,
       attempts: maxAttempts,
       inputTokens: inputTokens,
       outputTokens: outputTokens,
     );
+  }
+
+  /// 输出疑似被 max_tokens 截断的启发式判断：JSON 既不以 } 结尾、
+  /// 也没有代码围栏收尾（合法输出必居其一）。
+  static bool _looksTruncated(String raw) {
+    final text = raw.trimRight();
+    if (text.isEmpty) return false;
+    return !text.endsWith('}') && !text.endsWith('```');
   }
 
   /// 系统提示词（docs/02 D2/D3 契约：附分类树现状 + Schema 摘要 + 已有条目名）。
@@ -241,7 +262,7 @@ class KbIngestTask {
 你是创作资料库的资料整理助手，负责把原始创作资料清洗、结构化为知识条目。只输出一个 JSON 对象，禁止输出解释文字、开场白或 Markdown 代码围栏之外的内容。
 
 输出结构：
-{"cleaned":"去广告/冗余后的完整正文(Markdown 字符串)",
+{"cleaned":"清洗整理后的正文(Markdown 字符串，保留关键信息与结构，无需逐字保留全文)",
  "proposedCategory":"建议分类路径(用/分隔层级，必须从下方分类树中选择；都不合适填 未分类)",
  "proposedSchemaId":"建议 Schema id(必须从下方 Schema 列表中选择；无合适项填 general)",
  "entries":[{

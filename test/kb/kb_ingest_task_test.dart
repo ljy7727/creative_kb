@@ -161,6 +161,30 @@ void main() {
     expect(gateway.lastUser, contains('只输出 JSON'));
   });
 
+  test('minMaxTokens 抬底：低档位素材量大时至少用下限，防止 JSON 被截断', () async {
+    gateway.enqueue(qingyunResponse);
+    await task.run(
+      rawText: '（青云宗原文）',
+      intensity: await standardIntensity(),
+      minMaxTokens: 8192,
+    );
+    expect(gateway.lastMaxTokens, 8192);
+  });
+
+  test('输出疑似截断：重试提示要求压缩 cleaned/contentMd', () async {
+    gateway
+      // 不以 } 或 ``` 结尾：判定为截断，重试应带压缩指引。
+      ..enqueue('{"cleaned":"开头写了很多很多内容，然后突然断了，没有闭合括号')
+      ..enqueue(qingyunResponse);
+    final outcome = await task.run(
+      rawText: '（原文）',
+      intensity: await standardIntensity(),
+    );
+    expect(outcome.result, isNotNull, reason: '第二次尝试应成功');
+    expect(gateway.lastUser, contains('截断'));
+    expect(gateway.lastUser, contains('压缩'));
+  });
+
   test('三次均失败：返回中文错误并留痕（usage error + 队列 failed）', () async {
     for (var i = 0; i < 3; i++) {
       gateway.enqueue('还是不是 JSON。');

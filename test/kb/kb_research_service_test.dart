@@ -285,6 +285,61 @@ void main() {
     expect(outcome.ingest?.result, isNotNull);
   });
 
+  test('取消：不再进入结构化，结果标记 cancelled', () async {
+    await seedDeepSeekProvider();
+    llm = _ScriptedLlmClient(['{"queries":["李白生平","李白诗歌"]}']);
+    var searchCalls = 0;
+    final adapter = FakeAdapter((options) async {
+      if (options.path == '/v1/tools/search') {
+        searchCalls++;
+        return ResponseBody.fromString(
+          jsonEncode({
+            'results': [
+              {'title': 'T$searchCalls', 'url': 'https://e.com/$searchCalls', 'summary': 'S'},
+            ],
+          }),
+          200,
+          headers: {
+            Headers.contentTypeHeader: [Headers.jsonContentType],
+          },
+        );
+      }
+      return ResponseBody.fromString('{}', 200);
+    });
+    final tools = DeepSeekToolsClient(dio: Dio()..httpClientAdapter = adapter);
+    // 第二个检索词开始前点「取消」：本轮搜索仍完成，阶段边界退出。
+    var cancel = false;
+    final outcome = await buildService(tools).run(
+      topic: '李白的一生',
+      intensity: await standardIntensity(),
+      isCancelled: () => cancel,
+      onStage: (stage) {
+        if (stage.contains('李白诗歌')) cancel = true;
+      },
+    );
+    expect(outcome.cancelled, isTrue);
+    expect(outcome.error, '已取消');
+    expect(outcome.queries, hasLength(2));
+    expect(outcome.items, hasLength(2), reason: '两个检索词各自收集的资料随取消结果带回');
+    expect(gateway.completeCalls, 0, reason: '取消后不应进入结构化');
+  });
+
+  test('开始前取消：直接返回，不发起任何请求', () async {
+    await seedDeepSeekProvider();
+    llm = _ScriptedLlmClient(const []);
+    final adapter = FakeAdapter((_) async {
+      fail('取消后不应发起任何网络请求');
+    });
+    final tools = DeepSeekToolsClient(dio: Dio()..httpClientAdapter = adapter);
+    final outcome = await buildService(tools).run(
+      topic: '李白的一生',
+      intensity: await standardIntensity(),
+      isCancelled: () => true,
+    );
+    expect(outcome.cancelled, isTrue);
+    expect(llm.calls, 0);
+  });
+
   test('检索词 JSON 非法：回退为主题原文检索', () async {
     await seedDeepSeekProvider();
     llm = _ScriptedLlmClient(['不是 JSON']);

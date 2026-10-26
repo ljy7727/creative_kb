@@ -122,9 +122,9 @@ class KbIngestTask {
     // —— 队列行（可审计；向导内联执行，进度由向导页呈现）。
     final schemas = await loadSchemas();
     final categories = await _db.kbCategoriesDao.getAll();
-    final knownNames = (await _db.kbEntriesDao.getAll())
-        .map((e) => e.entryName)
-        .toList();
+    // 只取条目名列：提示词的 relatedEntries 校验只需名称，
+    // 整表读取会把全部 contentMd 拉进内存（大库下明显变慢）。
+    final knownNames = await _db.kbEntriesDao.allEntryNames();
     final system = buildSystemPrompt(
       schemas: schemas,
       categoryPaths: categories.map((c) => c.path).toList(),

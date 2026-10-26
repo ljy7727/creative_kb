@@ -23,6 +23,18 @@ class KbEntriesDao extends DatabaseAccessor<AppDatabase>
 
   Future<List<KbEntry>> getAll() => select(kbEntries).get();
 
+  /// 全部条目名（只查单列，供入库提示词的「已有条目」用；
+  /// 大库下避免把 contentMd 等大字段整表读进内存）。
+  Future<List<String>> allEntryNames() async {
+    final rows = await (selectOnly(
+      kbEntries,
+    )..addColumns([kbEntries.entryName])).get();
+    return [
+      for (final name in rows.map((row) => row.read(kbEntries.entryName)))
+        if (name != null && name.isNotEmpty) name,
+    ];
+  }
+
   Future<KbEntry?> byId(int id) =>
       (select(kbEntries)..where((t) => t.id.equals(id))).getSingleOrNull();
 

@@ -90,6 +90,8 @@ final backupServiceProvider = FutureProvider<BackupService?>((ref) async {
     dbFile: File(p.join(dir.path, 'app.db')),
     schemasDir: Directory(p.join(dir.path, 'schemas')),
     exportsDir: Directory(p.join(dir.path, 'exports')),
+    // 备忘录图片目录（与 MemoImageStore 同一布局），随备份包导出/还原。
+    memosDir: Directory(p.join(dir.path, 'memos')),
     snapshotDb: (target) async {
       // VACUUM INTO 生成一致性快照（sqlite ≥3.27）；路径内单引号转义。
       final escaped = target.path.replaceAll("'", "''");

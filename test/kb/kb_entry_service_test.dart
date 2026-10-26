@@ -173,4 +173,10 @@ void main() {
     );
     expect(await service.pendingRelatedNames(qingyun), isEmpty);
   });
+
+  test('allEntryNames 只返回条目名列（入库提示词用，大库不整表读大字段）', () async {
+    await service.createEntries([input('张小凡'), input('碧瑶')]);
+    final names = await db.kbEntriesDao.allEntryNames();
+    expect(names.toSet(), {'张小凡', '碧瑶'});
+  });
 }

@@ -22,6 +22,7 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
   String? _intensityCode;
   bool _fetchPages = false;
   bool _running = false;
+  bool _cancelRequested = false;
   String _stage = '';
   String? _error;
   KbResearchOutcome? _outcome;
@@ -66,6 +67,7 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
     if (_running) return;
     setState(() {
       _running = true;
+      _cancelRequested = false;
       _error = null;
       _outcome = null;
       _stage = '准备中…';
@@ -79,6 +81,7 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
         topic: _topicController.text,
         intensity: _currentPreset(presets),
         fetchPages: _fetchPages,
+        isCancelled: () => _cancelRequested,
         onStage: (stage) {
           if (mounted) setState(() => _stage = stage);
         },
@@ -88,7 +91,8 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
         _running = false;
         _stage = '';
         _outcome = outcome;
-        _error = outcome.error;
+        // 用户主动取消不算错误：只提示已取消，已收集部分照常展示。
+        _error = outcome.cancelled ? null : outcome.error;
       });
     } catch (e) {
       if (!mounted) return;
@@ -199,16 +203,22 @@ class _KbResearchPageState extends ConsumerState<KbResearchPage> {
             ],
           ),
           const SizedBox(height: 12),
-          FilledButton.icon(
-            onPressed: _running || !aiAvailable ? null : _run,
-            icon: _running
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.travel_explore),
-            label: Text(_running ? '搜集中…' : '开始搜集'),
+          Row(
+            children: [
+              Expanded(
+                child: _running
+                    ? OutlinedButton.icon(
+                        onPressed: () => setState(() => _cancelRequested = true),
+                        icon: const Icon(Icons.stop_circle_outlined),
+                        label: const Text('取消'),
+                      )
+                    : FilledButton.icon(
+                        onPressed: aiAvailable ? _run : null,
+                        icon: const Icon(Icons.travel_explore),
+                        label: const Text('开始搜集'),
+                      ),
+              ),
+            ],
           ),
           if (!aiAvailable)
             Padding(

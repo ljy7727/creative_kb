@@ -20,6 +20,7 @@ class KbResearchOutcome {
     this.ingest,
     this.error,
     this.blocked = false,
+    this.cancelled = false,
     this.queries = const <String>[],
     this.items = const <DeepSeekSearchItem>[],
     this.fetchedPages = 0,
@@ -31,6 +32,9 @@ class KbResearchOutcome {
   final KbIngestOutcome? ingest;
   final String? error;
   final bool blocked;
+
+  /// 用户主动取消（UI 据此不展示为错误）。
+  final bool cancelled;
   final List<String> queries;
   final List<DeepSeekSearchItem> items;
 
@@ -75,11 +79,15 @@ class KbResearchService {
     required IntensityParams intensity,
     bool fetchPages = false,
     ResearchStageCallback? onStage,
+    bool Function()? isCancelled,
   }) async {
     final trimmedTopic = topic.trim();
     if (trimmedTopic.isEmpty) {
       return const KbResearchOutcome(error: '请先填写要搜集的主题');
     }
+    // 各阶段边界检查取消（搜索/抓取循环内也逐条检查）。
+    bool cancelled() => isCancelled?.call() ?? false;
+    if (cancelled()) return _cancelled();
 
     // —— 额度防护（与 KbIngestTask 同语义：日上限 ≤ 已用即拦截并留痕）
     final settings = await _db.appSettingsDao.getAll();
@@ -137,6 +145,7 @@ class KbResearchService {
     final model = picked.$2.modelId;
 
     // —— 阶段 1：生成检索词
+    if (cancelled()) return _cancelled();
     onStage?.call('生成检索词…');
     var inputTokens = 0;
     var outputTokens = 0;
@@ -184,6 +193,7 @@ class KbResearchService {
     final seenUrls = <String>{};
     var searchFailures = 0;
     for (final query in queries) {
+      if (cancelled()) return _cancelled(queries: queries, items: collected);
       onStage?.call('搜索：$query');
       try {
         final results = await tools.search(
@@ -202,6 +212,8 @@ class KbResearchService {
       } on DeepSeekToolsException {
         searchFailures += 1;
       }
+      // 当前请求返回即检查：用户点取消后不必继续下一条检索词。
+      if (cancelled()) return _cancelled(queries: queries, items: collected);
       if (collected.length >= _maxItems) break;
     }
     if (collected.isEmpty) {
@@ -219,6 +231,13 @@ class KbResearchService {
       for (final item in collected.where((i) => i.url.trim().isNotEmpty).take(
         _maxFetchPages,
       )) {
+        if (cancelled()) {
+          return _cancelled(
+            queries: queries,
+            items: collected,
+            fetchedPages: fetched.length,
+          );
+        }
         onStage?.call('抓取正文：${item.siteName.isEmpty ? item.url : item.siteName}');
         try {
           final page = await tools.fetch(apiKey: apiKey, url: item.url);
@@ -237,6 +256,9 @@ class KbResearchService {
 
     // —— 阶段 4：汇总素材并交给 KbIngestTask 结构化
     // maxTokens 下限 8192：素材量大，2048/4096 档位会把 JSON 输出截断成非法格式。
+    if (cancelled()) {
+      return _cancelled(queries: queries, items: collected, fetchedPages: fetched.length);
+    }
     onStage?.call('结构化整理（${collected.length} 条资料）…');
     final material = _buildMaterial(trimmedTopic, collected, fetched);
     final outcome = await ingest.run(
@@ -255,6 +277,19 @@ class KbResearchService {
       outputTokens: outputTokens + outcome.outputTokens,
     );
   }
+
+  /// 取消结果：带上已完成的检索词/条目，便于 UI 展示已完成部分。
+  KbResearchOutcome _cancelled({
+    List<String> queries = const <String>[],
+    List<DeepSeekSearchItem> items = const <DeepSeekSearchItem>[],
+    int fetchedPages = 0,
+  }) => KbResearchOutcome(
+    cancelled: true,
+    error: '已取消',
+    queries: queries,
+    items: items,
+    fetchedPages: fetchedPages,
+  );
 
   /// 挑选 DeepSeek 厂商：baseUrl 含 api.deepseek.com、已存 Key、有启用模型。
   /// 模型优先非 embedding 标签。

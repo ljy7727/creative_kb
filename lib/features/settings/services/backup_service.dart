@@ -50,6 +50,7 @@ class BackupService {
     required this.dbFile,
     required this.schemasDir,
     required this.exportsDir,
+    this.memosDir,
     this.appVersion,
     this.snapshotDb,
   });
@@ -63,6 +64,10 @@ class BackupService {
   /// 导出落盘目录（exports/，不存在自动创建）。
   final Directory exportsDir;
 
+  /// 备忘录图片目录（memos/，库内只存路径，图片不打包就会在恢复后丢失；
+  /// null 时跳过（测试或旧环境））。
+  final Directory? memosDir;
+
   /// 打进 manifest 的应用版本（package_info，可空）。
   final String? appVersion;
 
@@ -73,6 +78,7 @@ class BackupService {
   static const _dbEntryName = 'app.db';
   static const _manifestEntryName = 'manifest.json';
   static const _schemasPrefix = 'schemas/';
+  static const _memosPrefix = 'memos/';
 
   /// 导出全量 zip 到 [destination]：`creative_kb-export-<时间戳>.zip`。
   Future<File> exportTo(Directory destination) async {
@@ -96,6 +102,18 @@ class BackupService {
         if (entity is File && entity.path.toLowerCase().endsWith('.json')) {
           archive.addFile(
             _entryFromFile(entity, '$_schemasPrefix${p.basename(entity.path)}'),
+          );
+        }
+      }
+    }
+
+    // 备忘录图片：库内只存路径，必须随包带走，否则恢复后图片全部丢失。
+    final images = memosDir;
+    if (images != null && images.existsSync()) {
+      for (final entity in images.listSync()) {
+        if (entity is File) {
+          archive.addFile(
+            _entryFromFile(entity, '$_memosPrefix${p.basename(entity.path)}'),
           );
         }
       }
@@ -148,6 +166,7 @@ class BackupService {
     BackupManifest? manifest;
     ArchiveFile? dbEntry;
     final schemaEntries = <ArchiveFile>[];
+    final memoEntries = <ArchiveFile>[];
     for (final file in archive.files) {
       if (!file.isFile) continue;
       if (file.name == _dbEntryName) {
@@ -163,6 +182,8 @@ class BackupService {
       } else if (file.name.startsWith(_schemasPrefix) &&
           file.name.toLowerCase().endsWith('.json')) {
         schemaEntries.add(file);
+      } else if (file.name.startsWith(_memosPrefix)) {
+        memoEntries.add(file);
       }
     }
     if (dbEntry == null) issues.add('缺少 $_dbEntryName（不是本应用的导出包）');
@@ -191,6 +212,18 @@ class BackupService {
     for (final entry in schemaEntries) {
       final out = File(p.join(schemasDir.path, p.basename(entry.name)));
       await out.writeAsBytes(entry.content, flush: true);
+    }
+
+    // 还原备忘录图片（memos/<name>；旧版导出包没有这些条目则跳过）。
+    final images = memosDir;
+    if (images != null && memoEntries.isNotEmpty) {
+      await images.create(recursive: true);
+      for (final entry in memoEntries) {
+        final name = p.basename(entry.name);
+        if (name.isEmpty) continue;
+        final out = File(p.join(images.path, name));
+        await out.writeAsBytes(entry.content, flush: true);
+      }
     }
 
     await dbFile.parent.create(recursive: true);
